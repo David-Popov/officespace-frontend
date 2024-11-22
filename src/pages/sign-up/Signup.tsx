@@ -52,8 +52,8 @@ const Signup: React.FC = () => {
 
   return (
     <GoogleOAuthProvider clientId="YOUR_CLIENT_ID">
-      <div className="flex flex-col items-center justify-center min-h-screen py-8 w-full">
-        <div className="border-2 border-gray-300 rounded-[14px] p-8 bg-white w-full max-w-md">
+      <div className="flex flex-col items-center justify-center min-h-screen py-8 w-full bg-background">
+        <div className="border rounded-[14px] p-8 w-full max-w-md bg-card text-card-foreground shadow-sm">
           <div className="text-center mb-4">
             <h2 className="text-xl font-semibold">Register</h2>
           </div>
@@ -65,7 +65,7 @@ const Signup: React.FC = () => {
                 alt="Profile"
                 ref={profilePicRef}
                 onClick={changeProfilePicture}
-                className="h-12 w-12 rounded-full border border-black cursor-pointer"
+                className="h-12 w-12 rounded-full border border-input cursor-pointer"
               />
               <input type="file" ref={profilePicInputRef} name="pictureURL" className="hidden" />
 
@@ -77,7 +77,7 @@ const Signup: React.FC = () => {
                 onChange={(e: ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
                 autoComplete="off"
                 required
-                className="ml-4 px-4 py-2 border rounded-[10px] w-full dark:border-none"
+                className="ml-4"
               />
             </div>
 
@@ -90,7 +90,6 @@ const Signup: React.FC = () => {
                 onChange={(e: ChangeEvent<HTMLInputElement>) => setFirstName(e.target.value)}
                 autoComplete="off"
                 required
-                className="px-4 py-2 border rounded-[10px] w-full dark:border-none"
               />
               <Input
                 type="text"
@@ -100,7 +99,6 @@ const Signup: React.FC = () => {
                 onChange={(e: ChangeEvent<HTMLInputElement>) => setLastName(e.target.value)}
                 autoComplete="off"
                 required
-                className="px-4 py-2 border rounded-[10px] w-full dark:border-none"
               />
             </div>
 
@@ -113,7 +111,6 @@ const Signup: React.FC = () => {
                 onChange={(e: ChangeEvent<HTMLInputElement>) => setPhoneNumber(e.target.value)}
                 autoComplete="off"
                 required
-                className="px-4 py-2 border rounded-[10px] w-full dark:border-none"
               />
               <Input
                 type="text"
@@ -123,7 +120,6 @@ const Signup: React.FC = () => {
                 onChange={(e: ChangeEvent<HTMLInputElement>) => setStreetAddress(e.target.value)}
                 autoComplete="off"
                 required
-                className="px-4 py-2 border rounded-[10px] w-full dark:border-none"
               />
               <Input
                 type="text"
@@ -133,7 +129,6 @@ const Signup: React.FC = () => {
                 onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                 autoComplete="off"
                 required
-                className="px-4 py-2 border rounded-[10px] w-full dark:border-none"
               />
               <Input
                 type="password"
@@ -142,15 +137,13 @@ const Signup: React.FC = () => {
                 value={password}
                 onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                 required
-                className="px-4 py-2 border rounded-[10px] w-full dark:border-none"
               />
             </div>
 
-            <Button type="submit" variant="default" className="w-full mt-4 rounded-[10px]">
+            <Button type="submit" className="w-full mt-4">
               Register
             </Button>
 
-            {/* Google Register Button */}
             <div className="mt-4">
               <GoogleLogin
                 onSuccess={handleGoogleLoginSuccess}

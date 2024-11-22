@@ -9,7 +9,7 @@ const App: FC<AppProps> = ({ title }) => {
   return (
     <div className="flex flex-col items-center justify-center w-full h-full">
       <section className="flex flex-col items-center text-center py-20 px-4">
-        <h1 className="text-5xl md:text-6xl font-bold text-gray-900">
+        <h1 className="text-5xl md:text-6xl font-bold text-yellow-500 dark:text-primary">
           The future of work is
           <br /> flexible
         </h1>

@@ -7,6 +7,9 @@ import Signup from "./pages/sign-up/Signup.tsx";
 import { SidebarProvider, SidebarTrigger } from "./components/ui/sidebar.tsx";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeProvider } from "./components/theme-provider.tsx";
+import Login from "./pages/login/Login.tsx";
+import RoomListing from "./pages/office-rooms/OfficeRooms.tsx";
+import Users from "./pages/users/Users.tsx";
 
 const Router = () => {
   return (
@@ -30,6 +33,18 @@ const router = createBrowserRouter([
   {
     path: "/signup",
     element: <Signup />,
+  },
+  {
+    path: "/login",
+    element: <Login />,
+  },
+  {
+    path: "/rooms",
+    element: <RoomListing />,
+  },
+  {
+    path: "/users",
+    element: <Users />,
   },
 ]);
 
