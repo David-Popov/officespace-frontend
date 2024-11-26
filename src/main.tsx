@@ -10,6 +10,8 @@ import { ThemeProvider } from "./components/theme-provider.tsx";
 import Login from "./pages/login/Login.tsx";
 import RoomListing from "./pages/office-rooms/OfficeRooms.tsx";
 import Users from "./pages/users/Users.tsx";
+import RoomDetailsPage from "./pages/room-details/RoomDetails.tsx";
+import { AuthProvider } from "./contexts/UserContext.tsx";
 
 const Router = () => {
   return (
@@ -46,10 +48,16 @@ const router = createBrowserRouter([
     path: "/users",
     element: <Users />,
   },
+  {
+    path: "/room-details",
+    element: <RoomDetailsPage />,
+  },
 ]);
 
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <Router />
-  </StrictMode>
+  <AuthProvider>
+    <StrictMode>
+      <Router />
+    </StrictMode>
+  </AuthProvider>
 );
