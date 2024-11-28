@@ -1,14 +1,4 @@
-import {
-  Calendar,
-  Home,
-  Inbox,
-  Search,
-  Settings,
-  LogIn,
-  UserPlus,
-  DoorOpen,
-  Users,
-} from "lucide-react";
+import { Calendar, Home, LogIn, UserPlus, DoorOpen, Users, LogOut, LogOutIcon } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -21,13 +11,24 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { ModeToggle } from "./ui/mode-toggle";
+import { useAuth } from "@/contexts/UserContext";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const mainItems = [
+const baseItems = [
   {
     title: "Home",
     url: "/",
     icon: Home,
   },
+  {
+    title: "Rooms",
+    url: "/rooms",
+    icon: DoorOpen,
+  },
+];
+
+const authItems = [
   {
     title: "SignUp",
     url: "/signup",
@@ -38,11 +39,9 @@ const mainItems = [
     url: "/login",
     icon: LogIn,
   },
-  {
-    title: "Rooms",
-    url: "/rooms",
-    icon: DoorOpen,
-  },
+];
+
+const adminItems = [
   {
     title: "Users",
     url: "/users",
@@ -51,6 +50,31 @@ const mainItems = [
 ];
 
 export function AppSidebar() {
+  const { user, isAdmin, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const getMenuItems = () => {
+    let items = [...baseItems];
+
+    if (!user) {
+      items = [...items, ...authItems];
+    }
+
+    if (isAdmin) {
+      items = [...items, ...adminItems];
+    }
+
+    return items;
+  };
+
+  const menuItems = getMenuItems();
+
+  const handleLogout = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    e.preventDefault();
+    logout();
+    navigate("/");
+  };
+
   return (
     <Sidebar>
       <SidebarContent className="flex flex-col h-full">
@@ -58,7 +82,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>OfficeSpace</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainItems.map((item) => (
+              {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <a href={item.url}>
@@ -68,11 +92,20 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              {user && (
+                <SidebarMenuItem key={"logout"}>
+                  <SidebarMenuButton asChild onClick={handleLogout}>
+                    <a href="#">
+                      <LogOut />
+                      <span>Logout</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Bottom section */}
         <div className="mt-auto">
           <SidebarGroup>
             <SidebarGroupContent>
@@ -85,7 +118,9 @@ export function AppSidebar() {
                           className="w-8 h-8 rounded-full"
                           src="https://github.com/shadcn.png"
                         />
-                        <span className="ml-3 text-sm truncate">randomemail@gmail.com</span>
+                        <span className="ml-3 text-sm truncate">
+                          {user ? user.email : "randomemail@gmail.com"}
+                        </span>
                       </Avatar>
                     </a>
                   </SidebarMenuButton>

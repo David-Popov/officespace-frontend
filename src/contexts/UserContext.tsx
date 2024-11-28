@@ -58,10 +58,8 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
         firstName: decoded.firstName,
         lastName: decoded.lastName,
         phone: decoded.phone,
-        address: decoded.address,
         roleId: decoded.roleId,
         roleNmae: decoded.roleName,
-        pictureUrl: decoded.pictureUrl,
       };
     } catch (error) {
       console.error("Error decoding token:", error);
