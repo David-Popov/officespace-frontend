@@ -7,11 +7,30 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useNavigate } from "react-router-dom";
 import { createRequest } from "@/helpers/request-response-helper";
+import { AuthService } from "@/services/authService";
+import { LoginUserRequest } from "@/types/auth.types";
+import { stat } from "fs";
+import { useNavigate } from "react-router-dom";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useAuth } from "@/contexts/UserContext";
 
 const Login: React.FC = () => {
+  const { login } = useAuth();
+  const [loginRequest, setLoginRequest] = useState<LoginUserRequest>({ email: "", password: "" });
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoginSuccessful, setIsLoginSuccessful] = useState<boolean>(true);
+  const [activateFailedLoginModal, setActivateFailedLoginModal] = useState<boolean>(false);
+  const service = AuthService.getInstance();
+  const navigate = useNavigate();
 
   const navigate = useNavigate();
 
@@ -20,24 +39,29 @@ const Login: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const data = {
-        email,
-        password,
-      };
+      console.log(loginRequest);
+      const result: Promise<void> = login(loginRequest);
 
-      const waiting = await fetch(`/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(createRequest(data)),
-      });
-
-      if (!waiting.ok) throw new Error("There was an error logging in the user");
-      // const {token} = await waiting.json();
-      // localStorage.setItem("jwt", token);
-
-      navigate(`/rooms`);
+      console.log(result);
+      result
+        .then(() => {
+          setIsLoginSuccessful(true);
+          navigate("/");
+        })
+        .catch((error) => {
+          setIsLoginSuccessful(false);
+          setActivateFailedLoginModal(true);
+          console.log(error);
+        });
+      // if (result. === "OK") {
+      //   setIsLoginSuccessful(true);
+      //   navigate("/");
+      // } else {
+      //   setActivateFailedLoginModal(true);
+      // }
     } catch (error) {
       console.error("Login failed:", error);
+      setActivateFailedLoginModal(true);
     } finally {
       setIsLoading(false);
     }
@@ -88,8 +112,10 @@ const Login: React.FC = () => {
                     id="email"
                     type="email"
                     placeholder="name@example.com"
-                    value={email}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                    value={loginRequest.email}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                      setLoginRequest((prev) => ({ ...prev, email: e.target.value }))
+                    }
                     required
                   />
                 </div>
@@ -109,8 +135,10 @@ const Login: React.FC = () => {
                     id="password"
                     type="password"
                     placeholder="Enter your password"
-                    value={password}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                    value={loginRequest.password}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                      setLoginRequest((prev) => ({ ...prev, password: e.target.value }))
+                    }
                     required
                   />
                 </div>
@@ -153,6 +181,23 @@ const Login: React.FC = () => {
           </CardFooter>
         </Card>
       </div>
+      <AlertDialog open={activateFailedLoginModal} onOpenChange={setActivateFailedLoginModal}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Login was unsuccessful.</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => {
+                setActivateFailedLoginModal(false);
+              }}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Close
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </GoogleOAuthProvider>
   );
 };

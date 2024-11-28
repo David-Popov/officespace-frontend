@@ -8,7 +8,7 @@ export interface BaseResponse<TData>{
     date: Date,
     errorDescription: string,
     responseId: string,
-    httpStatus: string,
+    status: string,
     description: string,
     data: TData | null
 }

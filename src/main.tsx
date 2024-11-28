@@ -12,6 +12,8 @@ import RoomListing from "./pages/office-rooms/OfficeRooms.tsx";
 import Users from "./pages/users/Users.tsx";
 import ChangePassword from "./pages/change-password/ChangePassword.tsx";
 import ReportIssue from "./pages/report-issue/report.tsx";
+import RoomDetailsPage from "./pages/room-details/RoomDetails.tsx";
+import { AuthProvider } from "./contexts/UserContext.tsx";
 
 const Router = () => {
   return (
@@ -56,10 +58,16 @@ const router = createBrowserRouter([
     path: "/report-issue",
     element: <ReportIssue />,
   },
+  {
+    path: "/room-details",
+    element: <RoomDetailsPage />,
+  },
 ]);
 
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <Router />
-  </StrictMode>
+  <AuthProvider>
+    <StrictMode>
+      <Router />
+    </StrictMode>
+  </AuthProvider>
 );

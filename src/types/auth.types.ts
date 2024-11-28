@@ -1,4 +1,5 @@
 import { BaseRequest, BaseResponse } from "./base-api.type";
+import { UserDto } from "./users.types";
 
 export interface RegisterUserRequest {
     email: string;
@@ -16,6 +17,7 @@ export interface LoginUserRequest {
 }
 
 export interface LoginResponse {
+    user: UserDto
     token: string;
     refreshToken: string;
 }

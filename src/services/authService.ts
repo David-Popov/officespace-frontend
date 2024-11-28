@@ -13,7 +13,6 @@ import { createRequest } from "@/helpers/request-response-helper"
 
 export class AuthService {
     private static instance: AuthService
-    // private readonly BASE_PATH = '/auth'
 
     private constructor() { }
     
@@ -25,24 +24,27 @@ export class AuthService {
         return AuthService.instance;
     }
 
-    public async login(credentials: LoginUserRequest): Promise<LoginResponseType> {
+    public async login(credentials: LoginUserRequest): Promise<string> {
         try {
             const loginRequest: LoginRequestType = createRequest(credentials)
 
             const response: AxiosResponse<LoginResponseType> = await api.post(`${API_CONFIG.ENDPOINTS.AUTH.LOGIN}`, loginRequest);
+            console.log(response)
 
             if (response.data.data) {
                 const { token, refreshToken } = response.data.data;
                 this.setAuthCookies(token, refreshToken)
             }
 
-            return response.data
+            console.log(response.status)
+
+            return response.data.status
         } catch (error: any) {
             const errorResponse: LoginResponseType = {
                 date: new Date(),
                 errorDescription: error.response?.data?.message || 'Login failed',
                 responseId: crypto.randomUUID(),
-                httpStatus: error.response?.status || 500,
+                status: error.response?.status || 500,
                 description: error.response?.description ||'Login failed',
                 data: null
             };
