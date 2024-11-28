@@ -22,7 +22,7 @@ const mockUsers: UserDto[] = [
     lastName: "Doe",
     phone: "+1 (555) 123-4567",
     address: "123 Main St, New York, NY 10001",
-    roleId: 1
+    roleId: 1,
   },
   {
     Id: "223e4567-e89b-12d3-a456-426614174001",
@@ -34,7 +34,7 @@ const mockUsers: UserDto[] = [
     lastName: "Smith",
     phone: "+1 (555) 234-5678",
     address: "456 Oak Ave, Los Angeles, CA 90001",
-    roleId: 2
+    roleId: 2,
   },
   {
     Id: "323e4567-e89b-12d3-a456-426614174002",
@@ -46,7 +46,7 @@ const mockUsers: UserDto[] = [
     lastName: "Johnson",
     phone: "+1 (555) 345-6789",
     address: "789 Pine St, Chicago, IL 60601",
-    roleId: 1
+    roleId: 1,
   },
   {
     Id: "423e4567-e89b-12d3-a456-426614174003",
@@ -58,7 +58,7 @@ const mockUsers: UserDto[] = [
     lastName: "Williams",
     phone: "+1 (555) 456-7890",
     address: "321 Elm St, Houston, TX 77001",
-    roleId: 2
+    roleId: 2,
   },
   {
     Id: "523e4567-e89b-12d3-a456-426614174004",
@@ -70,7 +70,7 @@ const mockUsers: UserDto[] = [
     lastName: "Brown",
     phone: "+1 (555) 567-8901",
     address: "654 Maple Ave, Miami, FL 33101",
-    roleId: 1
+    roleId: 1,
   },
   {
     Id: "623e4567-e89b-12d3-a456-426614174005",
@@ -82,7 +82,7 @@ const mockUsers: UserDto[] = [
     lastName: "Davis",
     phone: "+1 (555) 678-9012",
     address: "987 Cedar Rd, Seattle, WA 98101",
-    roleId: 2
+    roleId: 2,
   },
   {
     Id: "723e4567-e89b-12d3-a456-426614174006",
@@ -94,7 +94,7 @@ const mockUsers: UserDto[] = [
     lastName: "Miller",
     phone: "+1 (555) 789-0123",
     address: "147 Birch Ln, Boston, MA 02101",
-    roleId: 1
+    roleId: 1,
   },
   {
     Id: "823e4567-e89b-12d3-a456-426614174007",
@@ -106,8 +106,8 @@ const mockUsers: UserDto[] = [
     lastName: "Wilson",
     phone: "+1 (555) 890-1234",
     address: "258 Walnut Dr, San Francisco, CA 94101",
-    roleId: 2
-  }
+    roleId: 2,
+  },
 ];
 
 export default mockUsers;

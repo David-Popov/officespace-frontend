@@ -5,21 +5,37 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { useNavigate } from "react-router-dom";
+import { createRequest } from "@/helpers/request-response-helper";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
+  const navigate = useNavigate();
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Add your login logic here
     try {
-      // Example login request
-      // await loginUser({ email, password });
-      console.log("Logging in with:", { email, password });
+      const data = {
+        email,
+        password,
+      };
+
+      const waiting = await fetch(`/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(createRequest(data)),
+      });
+
+      if (!waiting.ok) throw new Error("There was an error logging in the user");
+      // const {token} = await waiting.json();
+      // localStorage.setItem("jwt", token);
+
+      navigate(`/rooms`);
     } catch (error) {
       console.error("Login failed:", error);
     } finally {
@@ -32,9 +48,18 @@ const Login: React.FC = () => {
     if (credential) {
       fetch("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=" + credential)
         .then((res) => res.json())
-        .then((data) => {
-          console.log("Google login successful:", data);
-          // Handle Google login success
+        .then(async (data) => {
+          const waiting = await fetch(`/auth/google-login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(createRequest(data)),
+          });
+
+          // if (!waiting.ok) throw new Error("There was an error loggin in the user through google");
+
+          // const {token} = await waiting.json();
+          // localStorage.setItem("jwt", token);
+          navigate(`/rooms`);
         });
     }
   };
@@ -44,7 +69,7 @@ const Login: React.FC = () => {
   };
 
   return (
-    <GoogleOAuthProvider clientId="YOUR_CLIENT_ID">
+    <GoogleOAuthProvider clientId="66303885318-h3pddbfj33od7r9nj3oigfimgm2nn7nk.apps.googleusercontent.com">
       <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-background w-full">
         <Card className="w-full max-w-md shadow-lg">
           <CardHeader className="space-y-1 text-center">

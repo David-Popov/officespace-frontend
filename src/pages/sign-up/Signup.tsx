@@ -1,8 +1,9 @@
-import React, { useState, useRef, ChangeEvent, FormEvent } from "react";
+import React, { useState, ChangeEvent, FormEvent } from "react";
 import { GoogleOAuthProvider, GoogleLogin, CredentialResponse } from "@react-oauth/google";
-import profilePic from "../../images/profilePic.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router-dom";
+import { createRequest } from "@/helpers/request-response-helper";
 
 const Signup: React.FC = () => {
   const [email, setEmail] = useState<string>("");
@@ -11,24 +12,32 @@ const Signup: React.FC = () => {
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
   const [phoneNumber, setPhoneNumber] = useState<string>("");
-  const [streetAddress, setStreetAddress] = useState<string>("");
 
-  const profilePicRef = useRef<HTMLImageElement>(null);
-  const profilePicInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
-  const handlePassword = (e: FormEvent) => {
+  const handlePassword = async (e: FormEvent) => {
     e.preventDefault();
-  };
 
-  const changeProfilePicture = () => {
-    if (profilePicInputRef.current) {
-      profilePicInputRef.current.click();
-      profilePicInputRef.current.onchange = () => {
-        if (profilePicRef.current && profilePicInputRef.current?.files) {
-          profilePicRef.current.src = URL.createObjectURL(profilePicInputRef.current.files[0]);
-        }
-      };
-    }
+    const data = {
+      email,
+      password,
+      username,
+      firstName,
+      lastName,
+      phoneNumber,
+    };
+
+    const response = await fetch(`/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(createRequest(data)),
+    });
+
+    if (!response.ok) throw new Error("There was an error registering the user");
+
+    // const {token} = await waiting.json();
+    // localStorage.setItem("jwt", token);
+    navigate(`/rooms`);
   };
 
   const handleGoogleLoginSuccess = (response: CredentialResponse) => {
@@ -36,12 +45,23 @@ const Signup: React.FC = () => {
     if (credential) {
       fetch("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=" + credential)
         .then((res) => res.json())
-        .then((data) => {
+        .then(async (data) => {
           setEmail(data.email);
           setFirstName(data.given_name);
           setLastName(data.family_name);
           setUsername(data.name);
-          console.log("Google user registered:", data);
+
+          const waiting = await fetch(`/auth/google-register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(createRequest(data)),
+          });
+
+          if (!waiting.ok) throw new Error("There was an error register user through google");
+
+          // const {token} = await waiting.json();
+          // localStorage.setItem("jwt", token);
+          navigate(`/rooms`);
         });
     }
   };
@@ -51,7 +71,7 @@ const Signup: React.FC = () => {
   };
 
   return (
-    <GoogleOAuthProvider clientId="YOUR_CLIENT_ID">
+    <GoogleOAuthProvider clientId="66303885318-h3pddbfj33od7r9nj3oigfimgm2nn7nk.apps.googleusercontent.com">
       <div className="flex flex-col items-center justify-center min-h-screen py-8 w-full bg-background">
         <div className="border rounded-[14px] p-8 w-full max-w-md bg-card text-card-foreground shadow-sm">
           <div className="text-center mb-4">
@@ -59,16 +79,7 @@ const Signup: React.FC = () => {
           </div>
 
           <form onSubmit={handlePassword}>
-            <div className="flex justify-center items-center mb-4">
-              <img
-                src={profilePic}
-                alt="Profile"
-                ref={profilePicRef}
-                onClick={changeProfilePicture}
-                className="h-12 w-12 rounded-full border border-input cursor-pointer"
-              />
-              <input type="file" ref={profilePicInputRef} name="pictureURL" className="hidden" />
-
+            <div className="flex mb-4">
               <Input
                 type="text"
                 name="username"
@@ -109,15 +120,6 @@ const Signup: React.FC = () => {
                 placeholder="Phone Number"
                 value={phoneNumber}
                 onChange={(e: ChangeEvent<HTMLInputElement>) => setPhoneNumber(e.target.value)}
-                autoComplete="off"
-                required
-              />
-              <Input
-                type="text"
-                name="address"
-                placeholder="Street Address"
-                value={streetAddress}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setStreetAddress(e.target.value)}
                 autoComplete="off"
                 required
               />
