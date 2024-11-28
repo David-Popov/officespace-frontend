@@ -10,13 +10,15 @@ import { ThemeProvider } from "./components/theme-provider.tsx";
 import Login from "./pages/login/Login.tsx";
 import RoomListing from "./pages/office-rooms/OfficeRooms.tsx";
 import Users from "./pages/users/Users.tsx";
+import ChangePassword from "./pages/change-password/ChangePassword.tsx";
+import ReportIssue from "./pages/report-issue/report.tsx";
 import RoomDetailsPage from "./pages/room-details/RoomDetails.tsx";
 import { AuthProvider } from "./contexts/UserContext.tsx";
 
 const Router = () => {
   return (
     <>
-      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
         <SidebarProvider>
           <AppSidebar />
           <SidebarTrigger />
@@ -47,6 +49,14 @@ const router = createBrowserRouter([
   {
     path: "/users",
     element: <Users />,
+  },
+  {
+    path: "/change-password",
+    element: <ChangePassword />,
+  },
+  {
+    path: "/report-issue",
+    element: <ReportIssue />,
   },
   {
     path: "/room-details",

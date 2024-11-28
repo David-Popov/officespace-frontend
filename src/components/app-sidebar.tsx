@@ -8,6 +8,7 @@ import {
   UserPlus,
   DoorOpen,
   Users,
+  BadgeAlert,
 } from "lucide-react";
 import {
   Sidebar,
@@ -47,6 +48,11 @@ const mainItems = [
     title: "Users",
     url: "/users",
     icon: Users,
+  },
+  {
+    title: "Issues",
+    url: "/report-issue",
+    icon: BadgeAlert,
   },
 ];
 

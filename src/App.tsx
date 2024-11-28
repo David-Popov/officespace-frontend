@@ -1,11 +1,13 @@
 import { FC } from "react";
 import image from "./images/section-img.jpeg";
+import { useNavigate } from "react-router-dom";
 
 interface AppProps {
   title?: string;
 }
 
 const App: FC<AppProps> = ({ title }) => {
+  const navigate = useNavigate();
   return (
     <div className="flex flex-col items-center justify-center w-full h-full">
       <section className="flex flex-col items-center text-center py-20 px-4">
@@ -20,7 +22,10 @@ const App: FC<AppProps> = ({ title }) => {
         </p>
 
         <div className="mt-8 flex space-x-4">
-          <button className="px-6 py-3 bg-orange-500 text-white font-medium rounded-md hover:bg-orange-600 focus:outline-none">
+          <button
+            className="px-6 py-3 bg-orange-500 text-white font-medium rounded-md hover:bg-orange-600 focus:outline-none"
+            onClick={() => navigate(`/rooms`)}
+          >
             Make Reservation
           </button>
         </div>

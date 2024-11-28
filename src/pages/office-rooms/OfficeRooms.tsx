@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 interface Room {
   id: string;
@@ -47,7 +48,7 @@ const RoomListing: React.FC = () => {
       description: "Spacious room with breathtaking ocean views and modern amenities",
       price: 299,
       capacity: 2,
-      imageUrl: "/api/placeholder/600/400",
+      imageUrl: "https://picsum.photos/seed/picsum/600/400",
       amenities: ["wifi", "parking", "coffee"],
       city: "Miami",
       from: new Date("2024-01-01"),
@@ -59,7 +60,7 @@ const RoomListing: React.FC = () => {
       description: "Luxurious suite with panoramic mountain views",
       price: 399,
       capacity: 4,
-      imageUrl: "/api/placeholder/600/400",
+      imageUrl: "https://picsum.photos/seed/picsum/600/400",
       amenities: ["wifi", "parking"],
       city: "Los Angeles",
       from: new Date("2023-01-01"),
@@ -71,12 +72,18 @@ const RoomListing: React.FC = () => {
       description: "Private villa surrounded by lush tropical gardens",
       price: 599,
       capacity: 6,
-      imageUrl: "/api/placeholder/600/400",
+      imageUrl: "https://picsum.photos/seed/picsum/600/400",
       amenities: ["wifi", "parking", "coffee"],
       city: "San Francisco",
       from: new Date("2026-01-01"),
       to: new Date("2027-01-01"),
     },
+  ];
+
+  const amenitiesOptions = [
+    { id: "wifi", label: "WiFi", icon: Wifi },
+    { id: "parking", label: "Parking", icon: ParkingCircle },
+    { id: "coffee", label: "Coffee Maker", icon: Coffee },
   ];
 
   const [rooms, setRooms] = useState<Room[]>(initialRooms);
@@ -95,17 +102,13 @@ const RoomListing: React.FC = () => {
   });
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  // const navigate = useNavigate();
 
   // Sample room data
 
-  const amenitiesOptions = [
-    { id: "wifi", label: "WiFi", icon: Wifi },
-    { id: "parking", label: "Parking", icon: ParkingCircle },
-    { id: "coffee", label: "Coffee Maker", icon: Coffee },
-  ];
-
   const handleViewDetails = (roomId: string) => {
-    console.log(`Viewing details for room ${roomId}`);
+    console.log(roomId);
+    // navigate(`/rooms/${roomId}`);
   };
 
   const handleFilterApply = () => {

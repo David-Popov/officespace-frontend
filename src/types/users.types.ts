@@ -129,7 +129,7 @@ const mockUsers: UserDto[] = [
     address: "258 Walnut Dr, San Francisco, CA 94101",
     roleId: 2,
     roleNmae: ""
-  }
+  },
 ];
 
 export default mockUsers;
