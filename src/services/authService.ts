@@ -53,6 +53,27 @@ export class AuthService {
         }
     }
 
+    public async register(credentials: RegisterUserRequest): Promise<void> {
+        try {
+            const registerRequest: RegisterRequestType = createRequest(credentials)
+
+            const response: AxiosResponse<LoginResponseType> = await api.post(`${API_CONFIG.ENDPOINTS.AUTH.REGISTER}`, registerRequest);
+            // console.log(response)
+            // console.log(response.status)
+        } catch (error: any) {
+            const errorResponse: LoginResponseType = {
+                date: new Date(),
+                errorDescription: error.response?.data?.message || 'Register failed',
+                responseId: crypto.randomUUID(),
+                status: error.response?.status || 500,
+                description: error.response?.description ||'Register failed',
+                data: null
+            };
+
+            throw errorResponse;
+        }
+    }
+
 
     //TODO LATER CHECK AGAIN EXPIRATION OF THE TOKENS
     private setAuthCookies(token: string, refreshToken: string): void {

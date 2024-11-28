@@ -1,93 +1,96 @@
-import React, { useState, useRef, ChangeEvent, FormEvent } from "react";
-import { GoogleOAuthProvider, GoogleLogin, CredentialResponse } from "@react-oauth/google";
-import profilePic from "../../images/profilePic.png";
+import React, { useState, ChangeEvent, FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AuthService } from "@/services/authService";
+import { useNavigate } from "react-router-dom";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+export interface RegisterUserRequest {
+  email: string;
+  username: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+}
 
 const Signup: React.FC = () => {
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [username, setUsername] = useState<string>("");
-  const [firstName, setFirstName] = useState<string>("");
-  const [lastName, setLastName] = useState<string>("");
-  const [phoneNumber, setPhoneNumber] = useState<string>("");
-  const [streetAddress, setStreetAddress] = useState<string>("");
+  const initFormData = {
+    email: "",
+    username: "",
+    password: "",
+    firstName: "",
+    lastName: "",
+    phone: "",
+  };
 
-  const profilePicRef = useRef<HTMLImageElement>(null);
-  const profilePicInputRef = useRef<HTMLInputElement>(null);
+  const [formData, setFormData] = useState<RegisterUserRequest>(initFormData);
+  const [activateFailedRegisterModal, setActivateFailedRegisterModal] = useState<boolean>(false);
+  const [activateSuccesfulRegisterModal, setActivateSuccesfulRegisterModal] =
+    useState<boolean>(false);
+  const navigate = useNavigate();
+  const service = AuthService.getInstance();
 
-  const handlePassword = (e: FormEvent) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-  };
+    console.log("Form data:", formData);
+    let result: Promise<void> = service.register(formData);
 
-  const changeProfilePicture = () => {
-    if (profilePicInputRef.current) {
-      profilePicInputRef.current.click();
-      profilePicInputRef.current.onchange = () => {
-        if (profilePicRef.current && profilePicInputRef.current?.files) {
-          profilePicRef.current.src = URL.createObjectURL(profilePicInputRef.current.files[0]);
-        }
-      };
-    }
-  };
-
-  const handleGoogleLoginSuccess = (response: CredentialResponse) => {
-    const { credential } = response;
-    if (credential) {
-      fetch("https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=" + credential)
-        .then((res) => res.json())
-        .then((data) => {
-          setEmail(data.email);
-          setFirstName(data.given_name);
-          setLastName(data.family_name);
-          setUsername(data.name);
-          console.log("Google user registered:", data);
-        });
-    }
-  };
-
-  const handleGoogleLoginFailure = (error: unknown) => {
-    console.error("Google login failed:", error);
+    result
+      .then(() => {
+        setActivateSuccesfulRegisterModal(true);
+        setTimeout(() => {
+          navigate("/login");
+        }, 3000);
+      })
+      .catch((error) => {
+        setActivateFailedRegisterModal(true);
+        console.log(error);
+      });
   };
 
   return (
-    <GoogleOAuthProvider clientId="YOUR_CLIENT_ID">
+    <>
       <div className="flex flex-col items-center justify-center min-h-screen py-8 w-full bg-background">
         <div className="border rounded-[14px] p-8 w-full max-w-md bg-card text-card-foreground shadow-sm">
           <div className="text-center mb-4">
             <h2 className="text-xl font-semibold">Register</h2>
           </div>
 
-          <form onSubmit={handlePassword}>
-            <div className="flex justify-center items-center mb-4">
-              <img
-                src={profilePic}
-                alt="Profile"
-                ref={profilePicRef}
-                onClick={changeProfilePicture}
-                className="h-12 w-12 rounded-full border border-input cursor-pointer"
-              />
-              <input type="file" ref={profilePicInputRef} name="pictureURL" className="hidden" />
-
-              <Input
-                type="text"
-                name="username"
-                placeholder="Username"
-                value={username}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
-                autoComplete="off"
-                required
-                className="ml-4"
-              />
-            </div>
+          <form onSubmit={handleSubmit}>
+            <Input
+              type="text"
+              name="username"
+              placeholder="Username"
+              value={formData.username}
+              onChange={handleChange}
+              autoComplete="off"
+              required
+              className="mb-4"
+            />
 
             <div className="flex space-x-4 mb-4">
               <Input
                 type="text"
                 name="firstName"
                 placeholder="First Name"
-                value={firstName}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setFirstName(e.target.value)}
+                value={formData.firstName}
+                onChange={handleChange}
                 autoComplete="off"
                 required
               />
@@ -95,8 +98,8 @@ const Signup: React.FC = () => {
                 type="text"
                 name="lastName"
                 placeholder="Last Name"
-                value={lastName}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setLastName(e.target.value)}
+                value={formData.lastName}
+                onChange={handleChange}
                 autoComplete="off"
                 required
               />
@@ -107,26 +110,17 @@ const Signup: React.FC = () => {
                 type="text"
                 name="phone"
                 placeholder="Phone Number"
-                value={phoneNumber}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setPhoneNumber(e.target.value)}
+                value={formData.phone}
+                onChange={handleChange}
                 autoComplete="off"
                 required
               />
               <Input
-                type="text"
-                name="address"
-                placeholder="Street Address"
-                value={streetAddress}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setStreetAddress(e.target.value)}
-                autoComplete="off"
-                required
-              />
-              <Input
-                type="text"
+                type="email"
                 name="email"
                 placeholder="Email"
-                value={email}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                value={formData.email}
+                onChange={handleChange}
                 autoComplete="off"
                 required
               />
@@ -134,8 +128,8 @@ const Signup: React.FC = () => {
                 type="password"
                 name="password"
                 placeholder="Password"
-                value={password}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                value={formData.password}
+                onChange={handleChange}
                 required
               />
             </div>
@@ -143,18 +137,47 @@ const Signup: React.FC = () => {
             <Button type="submit" className="w-full mt-4">
               Register
             </Button>
-
-            <div className="mt-4">
-              <GoogleLogin
-                onSuccess={handleGoogleLoginSuccess}
-                onError={() => handleGoogleLoginFailure}
-                useOneTap
-              />
-            </div>
           </form>
         </div>
       </div>
-    </GoogleOAuthProvider>
+      <AlertDialog open={activateFailedRegisterModal} onOpenChange={setActivateFailedRegisterModal}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Register was unsuccessful.</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => {
+                setActivateFailedRegisterModal(false);
+              }}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Close
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog
+        open={activateSuccesfulRegisterModal}
+        onOpenChange={setActivateSuccesfulRegisterModal}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Register was successful.</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => {
+                setActivateSuccesfulRegisterModal(false);
+              }}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Close
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 
