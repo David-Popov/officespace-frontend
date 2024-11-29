@@ -6,8 +6,12 @@ export type Endpoints = {
         readonly REGISTER: string;
     };
     readonly USERS: {
-        readonly PROFILE: string;
-        readonly UPDATE: string;
+        readonly GET_USER_DATA: string;
+    };
+    readonly ADMIN: {
+        readonly GETUSERS: string
+        readonly DELETEUSER: string;
+        readonly UPDATE_USER: string;
     };
 };
 
