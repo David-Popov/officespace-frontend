@@ -1,7 +1,7 @@
 import { BaseRequest } from "./base-api.type";
 
 export interface User {
-  id: string;
+  Id: string;
   email: string;
   username: string;
   // pictureUrl: string | null;
@@ -22,7 +22,7 @@ export type RefreshTokenRequestType = BaseRequest<RefreshTokenRequest>
 
 const mockUsers: User[] = [
   {
-    id: "123e4567-e89b-12d3-a456-426614174000",
+    Id: "123e4567-e89b-12d3-a456-426614174000",
     email: "john.doe@example.com",
     username: "johndoe",
     firstName: "John",
@@ -32,7 +32,7 @@ const mockUsers: User[] = [
     roleNmae: ""
   },
   {
-    id: "223e4567-e89b-12d3-a456-426614174001",
+    Id: "223e4567-e89b-12d3-a456-426614174001",
     email: "jane.smith@example.com",
     username: "janesmith",
     firstName: "Jane",
@@ -42,7 +42,7 @@ const mockUsers: User[] = [
     roleNmae: ""
   },
   {
-    id: "323e4567-e89b-12d3-a456-426614174002",
+    Id: "323e4567-e89b-12d3-a456-426614174002",
     email: "robert.johnson@example.com",
     username: "robjohnson",
     firstName: "Robert",
@@ -52,7 +52,7 @@ const mockUsers: User[] = [
     roleNmae: ""
   },
   {
-    id: "423e4567-e89b-12d3-a456-426614174003",
+    Id: "423e4567-e89b-12d3-a456-426614174003",
     email: "sarah.williams@example.com",
     username: "sarahw",
     firstName: "Sarah",
@@ -62,7 +62,7 @@ const mockUsers: User[] = [
     roleNmae: ""
   },
   {
-    id: "523e4567-e89b-12d3-a456-426614174004",
+    Id: "523e4567-e89b-12d3-a456-426614174004",
     email: "michael.brown@example.com",
     username: "mikebrown",
     firstName: "Michael",
@@ -72,7 +72,7 @@ const mockUsers: User[] = [
     roleNmae: ""
   },
   {
-    id: "623e4567-e89b-12d3-a456-426614174005",
+    Id: "623e4567-e89b-12d3-a456-426614174005",
     email: "emily.davis@example.com",
     username: "emilyd",
     firstName: "Emily",
@@ -82,7 +82,7 @@ const mockUsers: User[] = [
     roleNmae: ""
   },
   {
-    id: "723e4567-e89b-12d3-a456-426614174006",
+    Id: "723e4567-e89b-12d3-a456-426614174006",
     email: "david.miller@example.com",
     username: "davidm",
     firstName: "David",
@@ -92,7 +92,7 @@ const mockUsers: User[] = [
     roleNmae: ""
   },
   {
-    id: "823e4567-e89b-12d3-a456-426614174007",
+    Id: "823e4567-e89b-12d3-a456-426614174007",
     email: "lisa.wilson@example.com",
     username: "lisaw",
     firstName: "Lisa",

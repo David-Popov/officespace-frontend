@@ -12,6 +12,7 @@ import RoomListing from "./pages/office-rooms/OfficeRooms.tsx";
 import Users from "./pages/users/Users.tsx";
 import RoomDetailsPage from "./pages/room-details/RoomDetails.tsx";
 import { AuthProvider } from "./contexts/UserContext.tsx";
+import EditUser from "./pages/edit-user/EditUser.tsx";
 
 // Create a root layout component that includes the sidebar
 const RootLayout = () => {
@@ -53,6 +54,10 @@ const router = createBrowserRouter([
       {
         path: "/room-details",
         element: <RoomDetailsPage />,
+      },
+      {
+        path: "/users/edit/:id",
+        element: <EditUser />,
       },
     ],
   },
