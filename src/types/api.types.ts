@@ -9,6 +9,10 @@ export type Endpoints = {
         readonly PROFILE: string;
         readonly UPDATE: string;
     };
+    readonly OFFICES: {
+        readonly GET_OFFICES: string;
+        readonly GET_OFFICE_DATA: string;
+    };
 };
 
 export type ApiConfig = {
