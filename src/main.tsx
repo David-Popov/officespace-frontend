@@ -18,7 +18,6 @@ import EditUser from "./pages/edit-user/EditUser.tsx";
 import UserProfile from "./pages/user-profile/UserProfile.tsx";
 >>>>>>> Stashed changes
 
-// Create a root layout component that includes the sidebar
 const RootLayout = () => {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
@@ -59,8 +58,6 @@ const router = createBrowserRouter([
         path: "/room-details/:id",
         element: <RoomDetailsPage />,
       },
-<<<<<<< Updated upstream
-=======
       {
         path: "/users/edit/:id",
         element: <EditUser />,
@@ -69,7 +66,6 @@ const router = createBrowserRouter([
         path: "/profile",
         element: <UserProfile />,
       },
->>>>>>> Stashed changes
     ],
   },
 ]);
