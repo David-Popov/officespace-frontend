@@ -24,12 +24,18 @@ export const API_CONFIG: ApiConfig = {
             REGISTER: '/auth/register'
         },
         USERS: {
+            // PROFILE: '/users/profile',
+            // UPDATE: '/users/update',
             GET_USER_DATA: '/users/get-data/'
         },
         ADMIN: {
             GETUSERS: '/admin/get-users',
             DELETEUSER: '/admin/delete-user/',
             UPDATE_USER: '/admin/update'
+        },
+        OFFICES: {
+            GET_OFFICES: '/office-rooms',
+            GET_OFFICE_DATA: '/office-rooms/'
         }
     }
 } as const;

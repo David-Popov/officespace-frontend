@@ -12,9 +12,12 @@ import RoomListing from "./pages/office-rooms/OfficeRooms.tsx";
 import Users from "./pages/users/Users.tsx";
 import RoomDetailsPage from "./pages/room-details/RoomDetails.tsx";
 import { AuthProvider } from "./contexts/UserContext.tsx";
+<<<<<<< Updated upstream
+=======
 import EditUser from "./pages/edit-user/EditUser.tsx";
+import UserProfile from "./pages/user-profile/UserProfile.tsx";
+>>>>>>> Stashed changes
 
-// Create a root layout component that includes the sidebar
 const RootLayout = () => {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
@@ -52,17 +55,20 @@ const router = createBrowserRouter([
         element: <Users />,
       },
       {
-        path: "/room-details",
+        path: "/room-details/:id",
         element: <RoomDetailsPage />,
       },
       {
         path: "/users/edit/:id",
         element: <EditUser />,
       },
+      {
+        path: "/profile",
+        element: <UserProfile />,
+      },
     ],
   },
 ]);
-
 // Main render
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
