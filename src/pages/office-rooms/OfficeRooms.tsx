@@ -1,9 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react"; 
 import { Calendar as CalendarIcon, Filter, Users, Wifi, Coffee, ParkingCircle } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
@@ -27,6 +25,10 @@ import { OfficeService } from "@/services/officeService";
 import { OfficeRoom, RoomType, RoomStatus } from "@/types/offices.types";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { Slider } from "@/components/ui/slider"; // Added missing Slider import
 
 const RoomListing: React.FC = () => {
   const service = OfficeService.getInstance();
@@ -35,8 +37,8 @@ const RoomListing: React.FC = () => {
   const [rooms, setRooms] = useState<OfficeRoom[]>([]);
   const [filteredRooms, setFilteredRooms] = useState<OfficeRoom[]>([]);
   const [filters, setFilters] = useState({
-    dateRange: {
-      from: undefined as Date | undefined,
+    dateRange: { 
+      from: undefined as Date | undefined, 
       to: undefined as Date | undefined,
     },
     searchText: "",
@@ -44,6 +46,9 @@ const RoomListing: React.FC = () => {
     priceRange: [0, 1000],
     capacity: 1,
     type: "" as RoomType | "",
+    date: undefined as Date | undefined,
+    startTime: "09:00",
+    endTime: "10:00",
   });
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -68,30 +73,64 @@ const RoomListing: React.FC = () => {
     navigate(`/room-details/${roomId}`);
   };
 
-  const handleFilterApply = () => {
+  const handleFilterApply = async () => {
     setIsFilterOpen(false);
 
-    const filteredRooms = rooms.filter((room) => {
-      const isMatchingName = filters.searchText
-        ? room.office_room_name.toLowerCase().includes(filters.searchText.toLowerCase())
-        : true;
+    try {
+      const filterRoomsRequest = {
+        name: filters.searchText,
+        building: "",
+        floor: filters.floor,
+        type: filters.type,
+        capacity: filters.capacity,
+      };
 
-      const isMatchingFloor = filters.floor ? room.floor === filters.floor : true;
+      console.log("Filtered Rooms Request:", filterRoomsRequest);
+      const filteredRoomsResponse = await service.filterRooms(filterRoomsRequest);
 
-      const isMatchingCapacity = room.capacity >= filters.capacity;
+      const formatToLocalDateTime = (date: Date | undefined, time: string): string | undefined => {
+        if (!date || !time) {
+          console.error("Date or time is undefined", { date, time });
+          return undefined;
+        }
+        const formattedDate = date.toISOString().split("T")[0]; 
+        const formattedDateTime = `${formattedDate}T${time}:00`;
+        console.log("Formatted DateTime:", formattedDateTime);
+        return formattedDateTime;
+      };
 
-      const isMatchingPrice =
-        room.price_per_hour >= filters.priceRange[0] &&
-        room.price_per_hour <= filters.priceRange[1];
+      const startDateTime = filters.dateRange.from 
+        ? formatToLocalDateTime(filters.dateRange.from, filters.startTime)
+        : formatToLocalDateTime(new Date(), filters.startTime);
 
-      const isMatchingType = filters.type ? room.type === filters.type : true;
+      const endDateTime = filters.dateRange.to 
+        ? formatToLocalDateTime(filters.dateRange.to, filters.endTime)
+        : formatToLocalDateTime(new Date(), filters.endTime);
 
-      return (
-        isMatchingName && isMatchingFloor && isMatchingCapacity && isMatchingPrice && isMatchingType
-      );
-    });
+      console.log("Start DateTime:", startDateTime);
+      console.log("End DateTime:", endDateTime);
 
-    setFilteredRooms(filteredRooms);
+      const queryParams = new URLSearchParams();
+      if (startDateTime) queryParams.append("startDateTime", startDateTime);
+      if (endDateTime) queryParams.append("endDateTime", endDateTime);
+
+      console.log("Query Params:", queryParams.toString());
+
+      const availableRoomsResponse = await service.findAvailableRooms({
+        startDateTime,
+        endDateTime,
+      });
+
+      const filteredRooms = filteredRoomsResponse.filter((room) => {
+        return room.id === "someId"; 
+      });
+
+      setFilteredRooms(filteredRoomsResponse); 
+
+    } catch (error) {
+      console.error("Error applying filters:", error);
+      setFilteredRooms([]); // Optionally, you can set an error state or message instead
+    }
   };
 
   const handleResetFilters = () => {
@@ -102,12 +141,18 @@ const RoomListing: React.FC = () => {
       priceRange: [0, 1000],
       capacity: 1,
       type: "",
+      date: undefined, // Reset date
+      startTime: "09:00",
+      endTime: "10:00",
     });
     setFilteredRooms(rooms);
   };
 
-  // Get unique floors for the filter
   const availableFloors = Array.from(new Set(rooms.map((room) => room.floor))).sort();
+
+  const allSlots = [
+    "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"
+  ];
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -130,61 +175,121 @@ const RoomListing: React.FC = () => {
 
               <div className="py-6 space-y-8">
                 {/* Search by name */}
-                <div className="space-y-4">
-                  <h3 className="font-medium">Search</h3>
-                  <Input
-                    placeholder="Search by room name..."
-                    value={filters.searchText}
+                  <div className="space-y-4">
+                    <h3 className="font-medium">Search</h3>
+                    <Input
+                      placeholder="Search by room name..."
+                      value={filters.searchText}
                     onChange={(e) =>
                       setFilters((prev) => ({ ...prev, searchText: e.target.value }))
                     }
-                  />
-                </div>
+                    />
+                  </div>
 
-                {/* Floor Selection */}
-                <div className="space-y-4">
-                  <h3 className="font-medium">Floor</h3>
-                  <Select
-                    value={filters.floor}
-                    onValueChange={(value) => setFilters((prev) => ({ ...prev, floor: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a floor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableFloors.map((floor) => (
-                        <SelectItem key={floor} value={floor}>
-                          Floor {floor}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                  {/* Floor Selection */}
+                  <div className="space-y-4">
+                    <h3 className="font-medium">Floor</h3>
+                    <Select
+                      value={filters.floor}
+                      onValueChange={(value) => setFilters((prev) => ({ ...prev, floor: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a floor" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableFloors.map((floor) => (
+                          <SelectItem key={floor} value={floor}>
+                            Floor {floor}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                {/* Room Type Selection */}
-                <div className="space-y-4">
+                  {/* Date Selection */}
+                  <div className="space-y-4">
+                    <h3 className="font-medium">Select Date</h3>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn("w-full justify-start text-left font-normal", !filters.date && "text-muted-foreground")}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {filters.date ? format(filters.date, "PPP") : "Pick a date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={filters.date}
+                          onSelect={(date) => setFilters((prev) => ({ ...prev, date }))}
+                          initialFocus
+                          disabled={(date) => date < new Date() || date.getDay() === 0 || date.getDay() === 6}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                   {/* Time Selection */}
+                   <div className="space-y-4">
+                    <h3 className="font-medium">Start Time</h3>
+                    <Select
+                      value={filters.startTime}
+                      onValueChange={(value) => setFilters((prev) => ({ ...prev, startTime: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select start time" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {allSlots.map((slot) => (
+                          <SelectItem key={slot} value={slot}>
+                            {slot}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <h3 className="font-medium">End Time</h3>
+                    <Select
+                      value={filters.endTime}
+                      onValueChange={(value) => setFilters((prev) => ({ ...prev, endTime: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select end time" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {allSlots.map((slot) => (
+                          <SelectItem key={slot} value={slot}>
+                            {slot}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-4">
                   <h3 className="font-medium">Room Type</h3>
-                  <Select
+                    <Select
                     value={filters.type}
                     onValueChange={(value: RoomType) =>
                       setFilters((prev) => ({ ...prev, type: value }))
                     }
-                  >
-                    <SelectTrigger>
+                    >
+                      <SelectTrigger>
                       <SelectValue placeholder="Select room type" />
-                    </SelectTrigger>
-                    <SelectContent>
+                      </SelectTrigger>
+                      <SelectContent>
                       {Object.values(RoomType).map((type) => (
                         <SelectItem key={type} value={type}>
                           {type.replace("_", " ")}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
                 {/* Price Range Filter */}
-                <div className="space-y-4">
+                  <div className="space-y-4">
                   <h3 className="font-medium">Price Range (per hour)</h3>
                   <div className="px-4">
                     <Slider
@@ -201,10 +306,10 @@ const RoomListing: React.FC = () => {
                       <span>${filters.priceRange[1]}</span>
                     </div>
                   </div>
-                </div>
+                  </div>
 
                 {/* Capacity Filter */}
-                <div className="space-y-4">
+                  <div className="space-y-4">
                   <h3 className="font-medium">Minimum Capacity</h3>
                   <div className="flex gap-2 items-center">
                     <Users className="h-4 w-4" />

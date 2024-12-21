@@ -103,4 +103,28 @@ const mockUsers: User[] = [
   }
 ];
 
+export interface UserDto {
+  id: string;
+  email: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  roleId: number;
+  roleName: string;
+}
+
+
+export interface ParticipantDto {
+  id: string;
+  email: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  roleId: number;
+  roleName: string;
+  reservations: string[];
+}
+
 export default mockUsers;
