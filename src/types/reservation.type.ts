@@ -1,3 +1,5 @@
+import { ParticipantDto } from './users.types';
+
 export enum ReservationStatus {
   PENDING = 'PENDING',
   CONFIRMED = 'CONFIRMED',
@@ -24,6 +26,17 @@ export interface Reservation {
   status: ReservationStatus;
   office_room_uuid: string;
   participant_uuids: string[] | null;
+}
+export interface ReservationDto {
+  id: string;
+  reservationTitle: string;
+  userUuid: string;
+  startDateTime: string;
+  endDateTime: string;
+  durationAsHours: number;
+  status: ReservationStatus;
+  officeRoomUuid: string;
+  participants: ParticipantDto[];
 }
 
 export interface CreateReservationDto {
