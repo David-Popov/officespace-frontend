@@ -10,6 +10,7 @@ import {
   DollarSign,
   MapPin,
   ChevronRight,
+  AlertCircle,
 } from "lucide-react";
 import {
   Card,
@@ -36,6 +37,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { EventBookingDialog } from "../../components/events/EventBookingDialog";
+import { IssueReportDialog } from "../../components/ticket/IssueReportDialog";
 import { useParams } from "react-router-dom";
 import { emptyOfficeObject, OfficeRoom, RoomStatus, RoomType } from "@/types/offices.types";
 import { OfficeService } from "@/services/officeService";
@@ -50,6 +52,7 @@ const RoomDetailsPage: React.FC = () => {
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [duration, setDuration] = useState<string>("1");
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
+  const [isIssueReportDialogOpen, setIsIssueReportDialogOpen] = useState(false);
   const service = OfficeService.getInstance();
   const availableSlots: string[] = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"];
 
@@ -279,6 +282,17 @@ const getUserIdFromToken = (token: string): string=> {
               </TabsContent>
             </Tabs>
           </CardContent>
+<CardFooter className="flex justify-between">
+  <div className="ml-auto">
+    <Button
+      variant="outline"
+      onClick={() => setIsIssueReportDialogOpen(true)}
+    >
+      <AlertCircle className="w-4 h-4 mr-2" />
+      Report Issue
+    </Button>
+  </div>
+</CardFooter>
         </Card>
 
         <Card>
@@ -392,6 +406,13 @@ const getUserIdFromToken = (token: string): string=> {
         roomId={room.id}
         userId={userId}
       />
+
+<IssueReportDialog
+  isOpen={isIssueReportDialogOpen}
+  onClose={() => setIsIssueReportDialogOpen(false)}
+  roomId={room.id}  
+  userId={userId} 
+/>
     </div>
   );
 };
