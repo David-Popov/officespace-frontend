@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react"; 
 import { Calendar as CalendarIcon, Filter, Users, Wifi, Coffee, ParkingCircle } from "lucide-react";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -20,6 +19,14 @@ import {
   SheetTrigger,
   SheetFooter,
 } from "@/components/ui/sheet";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { OfficeService } from "@/services/officeService";
 import { OfficeRoom, RoomType, RoomStatus } from "@/types/offices.types";
@@ -28,12 +35,12 @@ import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { Slider } from "@/components/ui/slider"; // Added missing Slider import
+import { Slider } from "@/components/ui/slider";
 
 const RoomListing: React.FC = () => {
   const service = OfficeService.getInstance();
   const navigate = useNavigate();
-
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [rooms, setRooms] = useState<OfficeRoom[]>([]);
   const [filteredRooms, setFilteredRooms] = useState<OfficeRoom[]>([]);
   const [filters, setFilters] = useState({
@@ -152,6 +159,7 @@ const RoomListing: React.FC = () => {
     "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"
   ];
 
+
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="mb-8">
@@ -205,29 +213,34 @@ const RoomListing: React.FC = () => {
                   </div>
 
                   {/* Date Selection */}
-                  <div className="space-y-4">
-                    <h3 className="font-medium">Select Date</h3>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn("w-full justify-start text-left font-normal", !filters.date && "text-muted-foreground")}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {filters.date ? format(filters.date, "PPP") : "Pick a date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={filters.date}
-                          onSelect={(date) => setFilters((prev) => ({ ...prev, date }))}
-                          initialFocus
-                          disabled={(date) => date < new Date() || date.getDay() === 0 || date.getDay() === 6}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
+                  <div className="space-y-2">
+              <Label>Select Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !selectedDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    initialFocus
+                    disabled={(date) =>
+                      date < new Date() || date.getDay() === 0 || date.getDay() === 6
+                    }
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
 
                    {/* Time Selection */}
                    <div className="space-y-4">
