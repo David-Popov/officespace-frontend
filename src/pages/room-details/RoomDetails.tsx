@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect} from "react";
+import { useAuth } from "@/contexts/UserContext";
+import { jwtDecode } from "jwt-decode";
+import { JwtPayload } from "@/types/jwt.types";
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -36,7 +39,9 @@ import { EventBookingDialog } from "../../components/events/EventBookingDialog";
 import { useParams } from "react-router-dom";
 import { emptyOfficeObject, OfficeRoom, RoomStatus, RoomType } from "@/types/offices.types";
 import { OfficeService } from "@/services/officeService";
-import { ReservationStatus, Reservation } from "@/types/reservation.type";
+import { ReservationStatus, CreateReservation } from "@/types/reservation.type";
+import { cookieService } from "@/lib/cookie";
+import { API_CONFIG } from "@/config/api.config";
 
 const RoomDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -47,6 +52,23 @@ const RoomDetailsPage: React.FC = () => {
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
   const service = OfficeService.getInstance();
   const availableSlots: string[] = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"];
+
+  const token = cookieService.get(API_CONFIG.AUTH_COOKIE_NAME);
+  console.log("Token:", token);
+  
+const getUserIdFromToken = (token: string): string=> {
+  try {
+    const decoded = jwtDecode<JwtPayload>(token);
+    console.log("Decoded JWT:", decoded);
+    console.log("Decoded ID:", decoded.id);
+    return decoded.id;
+  } catch (error) {
+    console.error("Error decoding token:", error);
+    throw new Error("Failed to decode token");
+  }
+};
+
+  const userId = token ? getUserIdFromToken(token) : "";
 
   useEffect(() => {
     if (id == undefined) {
@@ -64,7 +86,7 @@ const RoomDetailsPage: React.FC = () => {
       });
   }, []);
 
-  const getAvailableTimeSlots = (date: Date | undefined, reservations: Reservation[]): string[] => {
+  const getAvailableTimeSlots = (date: Date | undefined, reservations: CreateReservation[]): string[] => {
     const allSlots = [
       "09:00",
       "10:00",
@@ -367,6 +389,8 @@ const RoomDetailsPage: React.FC = () => {
         selectedTime={selectedTime}
         duration={duration}
         roomName={room.office_room_name}
+        roomId={room.id}
+        userId={userId}
       />
     </div>
   );

@@ -7,6 +7,7 @@ export type Endpoints = {
     };
     readonly USERS: {
         readonly GET_USER_DATA: string;
+        GET_USER_BY_EMAIL: string;
     };
     readonly ADMIN: {
         readonly GETUSERS: string

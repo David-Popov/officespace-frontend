@@ -2,7 +2,7 @@ export interface JwtPayload {
   sub: string;
   email: string;
   exp: number;
-  Id: string;
+  id: string;
   username: string;
   password: string;
   pictureUrl: string | null;

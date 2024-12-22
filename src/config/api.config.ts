@@ -26,7 +26,8 @@ export const API_CONFIG: ApiConfig = {
         USERS: {
             // PROFILE: '/users/profile',
             // UPDATE: '/users/update',
-            GET_USER_DATA: '/users/get-data/'
+            GET_USER_DATA: '/users/get-data/',
+            GET_USER_BY_EMAIL: '/users/email/'
         },
         ADMIN: {
             GETUSERS: '/admin/get-users',
