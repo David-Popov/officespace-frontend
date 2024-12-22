@@ -1,4 +1,4 @@
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/UserContext";
 import { jwtDecode } from "jwt-decode";
 import { JwtPayload } from "@/types/jwt.types";
@@ -58,18 +58,18 @@ const RoomDetailsPage: React.FC = () => {
 
   const token = cookieService.get(API_CONFIG.AUTH_COOKIE_NAME);
   console.log("Token:", token);
-  
-const getUserIdFromToken = (token: string): string=> {
-  try {
-    const decoded = jwtDecode<JwtPayload>(token);
-    console.log("Decoded JWT:", decoded);
-    console.log("Decoded ID:", decoded.id);
-    return decoded.id;
-  } catch (error) {
-    console.error("Error decoding token:", error);
-    throw new Error("Failed to decode token");
-  }
-};
+
+  const getUserIdFromToken = (token: string): string => {
+    try {
+      const decoded = jwtDecode<JwtPayload>(token);
+      console.log("Decoded JWT:", decoded);
+      console.log("Decoded ID:", decoded.id);
+      return decoded.id;
+    } catch (error) {
+      console.error("Error decoding token:", error);
+      throw new Error("Failed to decode token");
+    }
+  };
 
   const userId = token ? getUserIdFromToken(token) : "";
 
@@ -164,6 +164,41 @@ const getUserIdFromToken = (token: string): string=> {
     }
   };
 
+  useEffect(() => {
+    if (selectedDate && room.reservations) {
+      const available = getAvailableTimeSlots(selectedDate, room.reservations);
+      console.log("Available Time Slots:", available);
+    }
+  }, [selectedDate, room.reservations]);
+
+  const handleBookingSuccess = async () => {
+    resetReservationForm();
+    setIsBookingDialogOpen(false);
+
+    if (id) {
+      try {
+        const updatedRoom = await service.getOfficeById(id);
+        setRoom(updatedRoom);
+      } catch (error) {
+        console.error("Error refreshing room data:", error);
+        alert("Reservation successful, but failed to update room data.");
+      }
+    }
+  };
+
+  const resetReservationForm = () => {
+    setSelectedDate(undefined);
+    setSelectedTime("");
+    setDuration("1");
+  };
+
+  useEffect(() => {
+    if (selectedDate && room.reservations) {
+      const available = getAvailableTimeSlots(selectedDate, room.reservations);
+      console.log("Updated Available Time Slots:", available);
+    }
+  }, [selectedDate, room.reservations]);
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-6xl space-y-8">
       <div className="space-y-4">
@@ -222,11 +257,11 @@ const getUserIdFromToken = (token: string): string=> {
                       variant="default"
                       className={cn(
                         room.status === RoomStatus.AVAILABLE &&
-                          "bg-green-100 text-green-800 hover:bg-green-100",
+                        "bg-green-100 text-green-800 hover:bg-green-100",
                         room.status === RoomStatus.OCCUPIED &&
-                          "bg-red-100 text-red-800 hover:bg-red-100",
+                        "bg-red-100 text-red-800 hover:bg-red-100",
                         room.status === RoomStatus.PENDING &&
-                          "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
+                        "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
                       )}
                     >
                       {room.status}
@@ -259,11 +294,11 @@ const getUserIdFromToken = (token: string): string=> {
                           variant="default"
                           className={cn(
                             reservation.status === ReservationStatus.CONFIRMED &&
-                              "bg-green-100 text-green-800 hover:bg-green-100",
+                            "bg-green-100 text-green-800 hover:bg-green-100",
                             reservation.status === ReservationStatus.PENDING &&
-                              "bg-yellow-100 text-yellow-800 hover:bg-yellow-100",
+                            "bg-yellow-100 text-yellow-800 hover:bg-yellow-100",
                             reservation.status === ReservationStatus.CANCELLED &&
-                              "bg-red-100 text-red-800 hover:bg-red-100"
+                            "bg-red-100 text-red-800 hover:bg-red-100"
                           )}
                         >
                           {reservation.status}
@@ -282,17 +317,17 @@ const getUserIdFromToken = (token: string): string=> {
               </TabsContent>
             </Tabs>
           </CardContent>
-<CardFooter className="flex justify-between">
-  <div className="ml-auto">
-    <Button
-      variant="outline"
-      onClick={() => setIsIssueReportDialogOpen(true)}
-    >
-      <AlertCircle className="w-4 h-4 mr-2" />
-      Report Issue
-    </Button>
-  </div>
-</CardFooter>
+          <CardFooter className="flex justify-between">
+            <div className="ml-auto">
+              <Button
+                variant="outline"
+                onClick={() => setIsIssueReportDialogOpen(true)}
+              >
+                <AlertCircle className="w-4 h-4 mr-2" />
+                Report Issue
+              </Button>
+            </div>
+          </CardFooter>
         </Card>
 
         <Card>
@@ -350,9 +385,9 @@ const getUserIdFromToken = (token: string): string=> {
                       onClick={() => setSelectedTime(time)}
                       disabled={Boolean(
                         !selectedDate ||
-                          (duration &&
-                            parseInt(duration) > 1 &&
-                            !isSlotAvailableForDuration(selectedDate, time, parseInt(duration)))
+                        (duration &&
+                          parseInt(duration) > 1 &&
+                          !isSlotAvailableForDuration(selectedDate, time, parseInt(duration)))
                       )}
                     >
                       <Clock className="w-4 h-4 mr-2" />
@@ -399,6 +434,7 @@ const getUserIdFromToken = (token: string): string=> {
       <EventBookingDialog
         isOpen={isBookingDialogOpen}
         onClose={() => setIsBookingDialogOpen(false)}
+        onSuccess={handleBookingSuccess}
         selectedDate={selectedDate}
         selectedTime={selectedTime}
         duration={duration}
@@ -407,12 +443,12 @@ const getUserIdFromToken = (token: string): string=> {
         userId={userId}
       />
 
-<IssueReportDialog
-  isOpen={isIssueReportDialogOpen}
-  onClose={() => setIsIssueReportDialogOpen(false)}
-  roomId={room.id}  
-  userId={userId} 
-/>
+      <IssueReportDialog
+        isOpen={isIssueReportDialogOpen}
+        onClose={() => setIsIssueReportDialogOpen(false)}
+        roomId={room.id}
+        userId={userId}
+      />
     </div>
   );
 };
