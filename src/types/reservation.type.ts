@@ -1,4 +1,4 @@
-import { ParticipantDto } from './users.types';
+import { BaseResponse,BaseRequest } from './base-api.type';
 
 export enum ReservationStatus {
   PENDING = 'PENDING',
@@ -25,27 +25,25 @@ export interface Reservation {
   durationAsHours: number;
   status: ReservationStatus;
   office_room_uuid: string;
-  participant_uuids: string[] | null;
 }
-export interface ReservationDto {
-  id: string;
-  reservationTitle: string;
-  userUuid: string;
-  startDateTime: string;
-  endDateTime: string;
-  durationAsHours: number;
-  status: ReservationStatus;
-  officeRoomUuid: string;
-  participants: ParticipantDto[];
-}
-
-export interface CreateReservationDto {
+export interface CreateReservation {
+  event: Event | null;
   reservation_title: string;
   user_uuid: string;
   start_date_time: string;
   end_date_time: string;
   durationAsHours: number;
   office_room_uuid: string;
-  participant_uuids?: string[];
-  event?: Event;
 }
+
+export interface Event {
+  id?: string;
+  meetingTitle: string;
+  description?: string;
+  attendees?: string[];
+  contactEmail: string;
+  department: string;
+  reservationId?: string;
+}
+
+export type CreateReservationType = BaseRequest<CreateReservation>;

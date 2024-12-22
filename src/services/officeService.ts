@@ -135,42 +135,45 @@ export class OfficeService {
 
   public async filterRooms(request: FilterRoomsRequest): Promise<Array<OfficeRoom>> {
     try {
-      const queryParams = new URLSearchParams();
-      if (request.name) queryParams.append("name", request.name);
-      if (request.building) queryParams.append("building", request.building);
-      if (request.floor) queryParams.append("floor", request.floor);
-      if (request.type) queryParams.append("type", request.type);
-      if (request.capacity !== undefined) queryParams.append("capacity", request.capacity.toString());
+        const queryParams = new URLSearchParams();
+        if (request.name) queryParams.append("name", request.name);
+        if (request.building) queryParams.append("building", request.building);
+        if (request.floor) queryParams.append("floor", request.floor);
+        if (request.type) queryParams.append("type", request.type);
+        if (request.capacity !== undefined) queryParams.append("capacity", request.capacity.toString());
+        if (request.minPrice !== undefined) queryParams.append("minPrice", request.minPrice.toString());
+        if (request.maxPrice !== undefined) queryParams.append("maxPrice", request.maxPrice.toString());
 
-      const response: AxiosResponse<GetFilteredOfficeRoomsResponse> = await api.get(
-        `${API_CONFIG.ENDPOINTS.OFFICES.FILTER_OFFICES}?${queryParams.toString()}`
-      );
+        const response: AxiosResponse<GetFilteredOfficeRoomsResponse> = await api.get(
+            `${API_CONFIG.ENDPOINTS.OFFICES.FILTER_OFFICES}?${queryParams.toString()}`
+        );
 
-      if (response.status === 200 && response.data.status === "OK") {
-        if (!response.data.data || response.data.data.length === 0) {
-          return [];
+        if (response.status === 200 && response.data.status === "OK") {
+            if (!response.data.data || response.data.data.length === 0) {
+                return [];
+            }
+            return response.data.data;
         }
-        return response.data.data;
-      }
 
-      throw new Error(response.data.errorDescription || "Failed to filter rooms");
+        throw new Error(response.data.errorDescription || "Failed to filter rooms");
     } catch (error: any) {
-      if (error.response) {
-        const errorResponse: GetUsersResponse = {
-          date: new Date(),
-          errorDescription: error.response.data.errorDescription || "Server error",
-          responseId: crypto.randomUUID(),
-          status: error.response.status.toString(),
-          description: error.response.data.description || "Failed to get offices",
-          data: null,
-        };
-        throw errorResponse;
-      } else if (error.request) {
-        throw new Error("No response received from server");
-      } else {
-        throw new Error("Error setting up request: " + error.message);
-      }
+        if (error.response) {
+            const errorResponse: GetUsersResponse = {
+                date: new Date(),
+                errorDescription: error.response.data.errorDescription || "Server error",
+                responseId: crypto.randomUUID(),
+                status: error.response.status.toString(),
+                description: error.response.data.description || "Failed to get offices",
+                data: null,
+            };
+            throw errorResponse;
+        } else if (error.request) {
+            throw new Error("No response received from server");
+        } else {
+            throw new Error("Error setting up request: " + error.message);
+        }
     }
-  }
+}
+
   
 }

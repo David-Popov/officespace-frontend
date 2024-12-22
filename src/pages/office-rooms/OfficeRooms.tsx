@@ -77,61 +77,59 @@ const RoomListing: React.FC = () => {
     setIsFilterOpen(false);
 
     try {
-      const filterRoomsRequest = {
-        name: filters.searchText,
-        building: "",
-        floor: filters.floor,
-        type: filters.type,
-        capacity: filters.capacity,
-      };
+        const filterRoomsRequest = {
+            name: filters.searchText,
+            building: "",
+            floor: filters.floor,
+            type: filters.type,
+            capacity: filters.capacity,
+            minPrice: filters.priceRange[0], 
+            maxPrice: filters.priceRange[1],  
+        };
 
-      console.log("Filtered Rooms Request:", filterRoomsRequest);
-      const filteredRoomsResponse = await service.filterRooms(filterRoomsRequest);
+        console.log("Filtered Rooms Request:", filterRoomsRequest);
+        const filteredRoomsResponse = await service.filterRooms(filterRoomsRequest);
 
-      const formatToLocalDateTime = (date: Date | undefined, time: string): string | undefined => {
-        if (!date || !time) {
-          console.error("Date or time is undefined", { date, time });
-          return undefined;
-        }
-        const formattedDate = date.toISOString().split("T")[0]; 
-        const formattedDateTime = `${formattedDate}T${time}:00`;
-        console.log("Formatted DateTime:", formattedDateTime);
-        return formattedDateTime;
-      };
+        const formatToLocalDateTime = (date: Date | undefined, time: string): string | undefined => {
+            if (!date || !time) {
+                console.error("Date or time is undefined", { date, time });
+                return undefined;
+            }
+            const formattedDate = date.toISOString().split("T")[0]; 
+            const formattedDateTime = `${formattedDate}T${time}:00`;
+            console.log("Formatted DateTime:", formattedDateTime);
+            return formattedDateTime;
+        };
 
-      const startDateTime = filters.dateRange.from 
-        ? formatToLocalDateTime(filters.dateRange.from, filters.startTime)
-        : formatToLocalDateTime(new Date(), filters.startTime);
+        const startDateTime = filters.dateRange.from 
+            ? formatToLocalDateTime(filters.dateRange.from, filters.startTime)
+            : formatToLocalDateTime(new Date(), filters.startTime);
 
-      const endDateTime = filters.dateRange.to 
-        ? formatToLocalDateTime(filters.dateRange.to, filters.endTime)
-        : formatToLocalDateTime(new Date(), filters.endTime);
+        const endDateTime = filters.dateRange.to 
+            ? formatToLocalDateTime(filters.dateRange.to, filters.endTime)
+            : formatToLocalDateTime(new Date(), filters.endTime);
 
-      console.log("Start DateTime:", startDateTime);
-      console.log("End DateTime:", endDateTime);
+        console.log("Start DateTime:", startDateTime);
+        console.log("End DateTime:", endDateTime);
 
-      const queryParams = new URLSearchParams();
-      if (startDateTime) queryParams.append("startDateTime", startDateTime);
-      if (endDateTime) queryParams.append("endDateTime", endDateTime);
+        const queryParams = new URLSearchParams();
+        if (startDateTime) queryParams.append("startDateTime", startDateTime);
+        if (endDateTime) queryParams.append("endDateTime", endDateTime);
 
-      console.log("Query Params:", queryParams.toString());
+        console.log("Query Params:", queryParams.toString());
 
-      const availableRoomsResponse = await service.findAvailableRooms({
-        startDateTime,
-        endDateTime,
-      });
+        const availableRoomsResponse = await service.findAvailableRooms({
+            startDateTime,
+            endDateTime,
+        });
 
-      const filteredRooms = filteredRoomsResponse.filter((room) => {
-        return room.id === "someId"; 
-      });
-
-      setFilteredRooms(filteredRoomsResponse); 
+        setFilteredRooms(filteredRoomsResponse); 
 
     } catch (error) {
-      console.error("Error applying filters:", error);
-      setFilteredRooms([]); // Optionally, you can set an error state or message instead
+        console.error("Error applying filters:", error);
+        setFilteredRooms([]);
     }
-  };
+};
 
   const handleResetFilters = () => {
     setFilters({

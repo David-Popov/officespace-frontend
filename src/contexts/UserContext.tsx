@@ -52,7 +52,7 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
     try {
       const decoded = jwtDecode<JwtPayload>(token);
       return {
-        id: decoded.Id,
+        Id: decoded.id,
         username: decoded.username,
         email: decoded.email,
         firstName: decoded.firstName,

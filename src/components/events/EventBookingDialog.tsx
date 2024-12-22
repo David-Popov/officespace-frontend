@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +14,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { Calendar, Clock, Users } from "lucide-react";
+import { ReservationService } from "@/services/reservationService";
+import { UserService } from "@/services/userService";
 
 interface BookingFormData {
   title: string;
@@ -29,7 +32,9 @@ export const EventBookingDialog: React.FC<{
   selectedTime: string;
   duration: string;
   roomName: string;
-}> = ({ isOpen, onClose, selectedDate, selectedTime, duration, roomName }) => {
+  roomId: string;
+  userId: string;
+}> = ({ isOpen, onClose, selectedDate, selectedTime, duration, roomName, roomId, userId }) => {
   const [formData, setFormData] = useState<BookingFormData>({
     title: "",
     description: "",
@@ -38,18 +43,68 @@ export const EventBookingDialog: React.FC<{
     department: "",
   });
 
+  console.log("USER ID from event booking:", userId);
+
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // Here you would handle the form submission
-    console.log("Form submitted:", {
-      ...formData,
-      date: selectedDate,
-      time: selectedTime,
-      duration: duration,
-    });
-    // Call your API to create the booking
-    onClose();
+    try {
+      e.preventDefault();
+  
+      const attendeesEmails = formData.attendees.split(",").map((email) => email.trim());
+  
+      const userService = UserService.getInstance();
+  
+      const attendeesIdsPromises = attendeesEmails.map(async (email) => {
+        const userResponse = await userService.getUserByEmail(email);
+        
+        if (!userResponse.data) {
+          throw new Error(`User with email ${email} not found.`);
+        }
+
+        console.log("UserResponse:", userResponse);
+        console.log("attendee Data:", userResponse.data);
+        console.log("attendee Id:", userResponse.data.Id);
+        
+        return userResponse.data.Id;
+      });
+      const attendeesIds = await Promise.all(attendeesIdsPromises);
+      console.log("Attendees IDs:", attendeesIds);
+  
+      const startDateTime = `${format(selectedDate as Date, "yyyy-MM-dd")}T${selectedTime}:00`;
+      const endDateTime = `${format(selectedDate as Date, "yyyy-MM-dd")}T${(
+        parseInt(selectedTime.split(":")[0]) + parseInt(duration)
+      )
+        .toString()
+        .padStart(2, "0")}:00`;
+  
+      const event = {
+        id: crypto.randomUUID(),
+        meetingTitle: formData.title,
+        description: formData.description,
+        attendees: attendeesIds, 
+        contactEmail: formData.email,
+        department: formData.department,
+        reservationId: crypto.randomUUID(),
+      };
+  
+      const createReservationData = {
+        event: event,
+        reservation_title: formData.title,
+        user_uuid: userId,
+        start_date_time: startDateTime,
+        end_date_time: endDateTime,
+        durationAsHours: parseInt(duration),
+        office_room_uuid: roomId
+      };
+  
+      const reservationService = ReservationService.getInstance();
+      await reservationService.createReservation(createReservationData);
+  
+      onClose();
+    } catch (error) {
+      console.error("Error creating reservation:", error);
+    }
   };
+  
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;

@@ -2,7 +2,6 @@ import { BaseResponse } from "./base-api.type";
 import { Reservation } from "./reservation.type";
 import { CompanyDto } from "./company.type";
 import { ResourceDto } from "./resource.type";
-import { ReservationDto } from "./reservation.type";
 
 export enum RoomType {
   CONFERENCE_ROOM = 'CONFERENCE_ROOM',
@@ -65,6 +64,8 @@ export interface FilterRoomsRequest {
   floor?: string;
   type?: string;
   capacity?: number;
+  minPrice?: number;
+  maxPrice?: number;
 }
 
 
