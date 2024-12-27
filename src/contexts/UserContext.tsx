@@ -52,16 +52,15 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
     try {
       const decoded = jwtDecode<JwtPayload>(token);
       return {
-        id: decoded.Id,
+        Id: decoded.id,
         username: decoded.username,
         email: decoded.email,
         firstName: decoded.firstName,
         lastName: decoded.lastName,
         phone: decoded.phone,
-        address: decoded.address,
         roleId: decoded.roleId,
-        roleNmae: decoded.roleName,
-        pictureUrl: decoded.pictureUrl,
+        roleName: decoded.roleName,
+        reservations: decoded.reservations,
       };
     } catch (error) {
       console.error("Error decoding token:", error);
@@ -73,20 +72,22 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
     updateState({ isLoading: true, error: null });
 
     try {
-      const status = await authService.login(credentials);
+      const response = await authService.login(credentials);
 
-      if (status === "200" || status === "OK") {
+      if (response.status === "200" || response.status === "OK") {
         const token = cookieService.get(API_CONFIG.AUTH_COOKIE_NAME);
 
         if (!token) {
           throw new Error("No token received after login");
         }
 
+        console.log("reservation ", response.data?.user?.reservations);
         const user = getUserFromToken(token);
+        user.reservations = response.data?.user?.reservations || [];
         updateState({
           user,
           isAuthenticated: true,
-          isAdmin: user.roleNmae.toUpperCase() === "ADMIN",
+          isAdmin: user.roleName.toUpperCase() === "ADMIN",
           isLoading: false,
           error: null,
         });
@@ -152,7 +153,7 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
       updateState({
         user,
         isAuthenticated: true,
-        isAdmin: user.roleNmae.toUpperCase() === "ADMIN",
+        isAdmin: user.roleName.toUpperCase() === "ADMIN",
         isLoading: false,
         error: null,
       });

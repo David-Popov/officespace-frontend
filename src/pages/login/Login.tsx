@@ -22,10 +22,7 @@ import { useAuth } from "@/contexts/UserContext";
 const Login: React.FC = () => {
   const { login } = useAuth();
   const [loginRequest, setLoginRequest] = useState<LoginUserRequest>({ email: "", password: "" });
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isLoginSuccessful, setIsLoginSuccessful] = useState<boolean>(true);
   const [activateFailedLoginModal, setActivateFailedLoginModal] = useState<boolean>(false);
   const service = AuthService.getInstance();
   const navigate = useNavigate();
@@ -38,23 +35,14 @@ const Login: React.FC = () => {
       console.log(loginRequest);
       const result: Promise<void> = login(loginRequest);
 
-      console.log(result);
       result
         .then(() => {
-          setIsLoginSuccessful(true);
           navigate("/");
         })
         .catch((error) => {
-          setIsLoginSuccessful(false);
           setActivateFailedLoginModal(true);
           console.log(error);
         });
-      // if (result. === "OK") {
-      //   setIsLoginSuccessful(true);
-      //   navigate("/");
-      // } else {
-      //   setActivateFailedLoginModal(true);
-      // }
     } catch (error) {
       console.error("Login failed:", error);
       setActivateFailedLoginModal(true);

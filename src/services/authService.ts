@@ -24,7 +24,7 @@ export class AuthService {
         return AuthService.instance;
     }
 
-    public async login(credentials: LoginUserRequest): Promise<string> {
+    public async login(credentials: LoginUserRequest): Promise<LoginResponseType> {
         try {
             const loginRequest: LoginRequestType = createRequest(credentials)
 
@@ -38,7 +38,7 @@ export class AuthService {
 
             console.log(response.status)
 
-            return response.data.status
+            return response.data
         } catch (error: any) {
             const errorResponse: LoginResponseType = {
                 date: new Date(),
@@ -46,6 +46,27 @@ export class AuthService {
                 responseId: crypto.randomUUID(),
                 status: error.response?.status || 500,
                 description: error.response?.description ||'Login failed',
+                data: null
+            };
+
+            throw errorResponse;
+        }
+    }
+
+    public async register(credentials: RegisterUserRequest): Promise<void> {
+        try {
+            const registerRequest: RegisterRequestType = createRequest(credentials)
+
+            const response: AxiosResponse<LoginResponseType> = await api.post(`${API_CONFIG.ENDPOINTS.AUTH.REGISTER}`, registerRequest);
+            // console.log(response)
+            // console.log(response.status)
+        } catch (error: any) {
+            const errorResponse: LoginResponseType = {
+                date: new Date(),
+                errorDescription: error.response?.data?.message || 'Register failed',
+                responseId: crypto.randomUUID(),
+                status: error.response?.status || 500,
+                description: error.response?.description ||'Register failed',
                 data: null
             };
 
