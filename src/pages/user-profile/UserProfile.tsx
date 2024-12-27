@@ -39,7 +39,6 @@ interface ReservationDto {
   durationAsHours: number;
   status: ReservationStatus;
   office_room_uuid: string;
-  participant_uuids?: string[];
   event?: EventDto;
 }
 

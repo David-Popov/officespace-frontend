@@ -25,7 +25,6 @@ export interface Reservation {
   durationAsHours: number;
   status: ReservationStatus;
   office_room_uuid: string;
-  participant_uuids: string[] | null;
 }
 
 export interface CreateReservationRequest {
@@ -61,3 +60,5 @@ export interface EventBookingDialogProps {
   roomName: string;
   onSubmit: (eventData: Event) => void;
 }
+
+export type CreateReservationType = BaseRequest<CreateReservation>;

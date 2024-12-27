@@ -50,6 +50,8 @@ export const EventBookingDialog: React.FC<EventBookingDialogProps> = ({
     department: "",
   });
 
+  const [showAlertDialog, setShowAlertDialog] = useState(false);
+
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -91,100 +93,102 @@ export const EventBookingDialog: React.FC<EventBookingDialogProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Book {roomName}</DialogTitle>
-          <DialogDescription>Fill in the details for your meeting reservation</DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Book {roomName}</DialogTitle>
+            <DialogDescription>Fill in the details for your meeting reservation</DialogDescription>
+          </DialogHeader>
 
-        <form onSubmit={handleFormSubmit} className="space-y-6">
-          <div className="bg-muted p-4 rounded-lg space-y-2">
-            <div className="flex items-center gap-2 text-sm">
-              <Calendar className="w-4 h-4" />
-              <span>{formatDate(selectedDate)}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Clock className="w-4 h-4" />
-              <span>
-                {selectedTime} ({duration} hour{parseInt(duration) > 1 ? "s" : ""})
-              </span>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="title">Meeting Title*</Label>
-            <Input
-              id="title"
-              name="title"
-              value={formData.title}
-              onChange={handleInputChange}
-              placeholder="Enter meeting title"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              placeholder="Enter meeting description"
-              rows={3}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="attendees">
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                <span>Attendees (email addresses)</span>
+          <form onSubmit={handleFormSubmit} className="space-y-6">
+            <div className="bg-muted p-4 rounded-lg space-y-2">
+              <div className="flex items-center gap-2 text-sm">
+                <Calendar className="w-4 h-4" />
+                <span>{formatDate(selectedDate)}</span>
               </div>
-            </Label>
-            <Input
-              id="attendees"
-              name="attendees"
-              value={formData.attendees}
-              onChange={handleInputChange}
-              placeholder="Enter attendee emails separated by commas"
-            />
-          </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Clock className="w-4 h-4" />
+                <span>
+                  {selectedTime} ({duration} hour{parseInt(duration) > 1 ? "s" : ""})
+                </span>
+              </div>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Contact Email*</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              placeholder="Enter your email"
-              required
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="title">Meeting Title*</Label>
+              <Input
+                id="title"
+                name="title"
+                value={formData.title}
+                onChange={handleInputChange}
+                placeholder="Enter meeting title"
+                required
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="department">Department*</Label>
-            <Input
-              id="department"
-              name="department"
-              value={formData.department}
-              onChange={handleInputChange}
-              placeholder="Enter your department"
-              required
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                placeholder="Enter meeting description"
+                rows={3}
+              />
+            </div>
 
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={onClose} type="button">
-              Cancel
-            </Button>
-            <Button type="submit">Confirm Booking</Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+            <div className="space-y-2">
+              <Label htmlFor="attendees">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  <span>Attendees (email addresses)</span>
+                </div>
+              </Label>
+              <Input
+                id="attendees"
+                name="attendees"
+                value={formData.attendees}
+                onChange={handleInputChange}
+                placeholder="Enter attendee emails separated by commas"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Contact Email*</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="department">Department*</Label>
+              <Input
+                id="department"
+                name="department"
+                value={formData.department}
+                onChange={handleInputChange}
+                placeholder="Enter your department"
+                required
+              />
+            </div>
+
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={onClose} type="button">
+                Cancel
+              </Button>
+              <Button type="submit">Confirm Booking</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };

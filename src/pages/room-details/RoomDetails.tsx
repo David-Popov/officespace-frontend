@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/UserContext";
+import { jwtDecode } from "jwt-decode";
+import { JwtPayload } from "@/types/jwt.types";
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -7,6 +10,7 @@ import {
   DollarSign,
   MapPin,
   ChevronRight,
+  AlertCircle,
 } from "lucide-react";
 import {
   Card,
@@ -33,6 +37,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { EventBookingDialog } from "../../components/events/EventBookingDialog";
+import { IssueReportDialog } from "../../components/ticket/IssueReportDialog";
 import { useParams } from "react-router-dom";
 import { emptyOfficeObject, OfficeRoom, RoomStatus } from "@/types/offices.types";
 import { OfficeService } from "@/services/officeService";
@@ -43,7 +48,6 @@ import {
   Event,
   CreateReservationRequest,
 } from "@/types/reservation.type";
-import { useAuth } from "@/contexts/UserContext";
 import { ReservationService } from "@/services/reservationService";
 import { error } from "console";
 
@@ -55,6 +59,7 @@ const RoomDetailsPage: React.FC = () => {
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [duration, setDuration] = useState<string>("1");
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
+  const [isIssueReportDialogOpen, setIsIssueReportDialogOpen] = useState(false);
   const service = OfficeService.getInstance();
   const { user, isAuthenticated } = useAuth();
   const reservationService = ReservationService.getInstance();

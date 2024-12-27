@@ -43,7 +43,7 @@ export class ReservationService {
     const request = createRequest(createReservationRequest);
 
     const response: AxiosResponse<createReservationResponse> = await api.post(
-      `${API_CONFIG.ENDPOINTS.RESERVATIONS.MAKE_RESERVATION}`,
+      `${API_CONFIG.ENDPOINTS.RESERVATIONS.CREATE}`,
       request
     );
 

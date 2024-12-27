@@ -31,41 +31,18 @@ const router = createBrowserRouter([
   {
     element: <RootLayout />,
     children: [
-      {
-        path: "/",
-        element: <App title="something" />,
-      },
-      {
-        path: "/signup",
-        element: <Signup />,
-      },
-      {
-        path: "/login",
-        element: <Login />,
-      },
-      {
-        path: "/rooms",
-        element: <RoomListing />,
-      },
-      {
-        path: "/users",
-        element: <Users />,
-      },
-      {
-        path: "/room-details/:id",
-        element: <RoomDetailsPage />,
-      },
-      {
-        path: "/users/edit/:id",
-        element: <EditUser />,
-      },
-      {
-        path: "/profile",
-        element: <UserProfile />,
-      },
+      { path: "/", element: <App title="something" /> },
+      { path: "/signup", element: <Signup /> },
+      { path: "/login", element: <Login /> },
+      { path: "/rooms", element: <RoomListing /> },
+      { path: "/users", element: <Users /> },
+      { path: "/room-details/:id", element: <RoomDetailsPage /> },
+      { path: "/users/edit/:id", element: <EditUser /> },
+      { path: "/profile", element: <UserProfile /> },
     ],
   },
 ]);
+
 // Main render
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

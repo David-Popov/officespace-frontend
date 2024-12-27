@@ -26,7 +26,8 @@ export const API_CONFIG: ApiConfig = {
         USERS: {
             // PROFILE: '/users/profile',
             // UPDATE: '/users/update',
-            GET_USER_DATA: '/users/get-data/'
+            GET_USER_DATA: '/users/get-data/',
+            GET_USER_BY_EMAIL: '/users/email/'
         },
         ADMIN: {
             GETUSERS: '/admin/get-users',
@@ -35,12 +36,36 @@ export const API_CONFIG: ApiConfig = {
         },
         OFFICES: {
             GET_OFFICES: '/office-rooms',
-            GET_OFFICE_DATA: '/office-rooms/'
+            GET_OFFICE_DATA: '/office-rooms/',
+            UPDATE_OFFICE: '/office-rooms/update/{id}',
+            ADD_OFFICE_RESOURCES: '/office-rooms/{officeRoomId}/resources',
+            ADD_OFFICE_RESOURCE: '/office-rooms/{officeRoomId}/resources/{resourceId}',
+            REMOVE_OFFICE_RESOURCE: '/office-rooms/{officeRoomId}/resources/{resourceId}',
+            CREATE_OFFICE: '/office-rooms/create',
+            GET_ALL_OFFICES: '/office-rooms',
+            GET_OFFICE_BY_ID: '/office-rooms/{id}',
+            GET_OFFICE_TYPES: '/office-rooms/get-types',
+            GET_OFFICES_STATUSES: '/office-rooms/get-statuses',
+            FILTER_OFFICES: '/office-rooms/filter',
+            GET_AVAILABLE_ROOMS: '/office-rooms/availability',
+            DELETE_OFFICE: '/office-rooms/delete/{id}',
         },
         RESERVATIONS: {
-            MAKE_RESERVATION: '/reservations/create'
-        }
-    }
+            UPDATE: '/reservations/update/{id}',
+            CREATE: '/reservations/create',
+            GET_BY_ID: '/reservations/{id}',
+            GET_BY_USER_ID: '/reservations/user/{userId}',
+            GET_BY_OFFICE_ROOM_ID: '/reservations/office-room/{officeRoomId}',
+            GET_STATUSES: '/reservations/get-statuses',
+            DELETE: '/reservations/delete/{id}',
+        },
+        TICKETS: {
+            CREATE: '/tickets/create',
+            UPDATE_STATUS: '/tickets/update-status/{id}/status',
+            GET_ALL_BY_USER: '/tickets/all/{userId}',
+            DELETE: '/tickets/delete/{id}',
+        },
+    },
 } as const;
 
 export const getFullUrl = (endpoint: string): string => {
