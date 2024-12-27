@@ -24,7 +24,7 @@ export class AuthService {
         return AuthService.instance;
     }
 
-    public async login(credentials: LoginUserRequest): Promise<string> {
+    public async login(credentials: LoginUserRequest): Promise<LoginResponseType> {
         try {
             const loginRequest: LoginRequestType = createRequest(credentials)
 
@@ -38,7 +38,7 @@ export class AuthService {
 
             console.log(response.status)
 
-            return response.data.status
+            return response.data
         } catch (error: any) {
             const errorResponse: LoginResponseType = {
                 date: new Date(),

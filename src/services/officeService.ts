@@ -58,7 +58,6 @@ export class OfficeService {
 
    public async getOfficeById(id: string): Promise<OfficeRoom> {
      try {
-       console.log(id)
       if (!id) {
         throw new Error("User ID is required");
       }

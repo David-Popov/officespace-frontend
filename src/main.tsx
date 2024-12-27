@@ -15,8 +15,6 @@ import { AuthProvider } from "./contexts/UserContext.tsx";
 import EditUser from "./pages/edit-user/EditUser.tsx";
 import UserProfile from "./pages/user-profile/UserProfile.tsx";
 
-// Root layout and router setup
-
 const RootLayout = () => {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">

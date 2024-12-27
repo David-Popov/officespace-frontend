@@ -17,7 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import mockUsers, { User } from "@/types/users.types";
+import { User } from "@/types/users.types";
 import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AdminService } from "@/services/adminService";

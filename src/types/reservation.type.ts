@@ -1,4 +1,4 @@
-import { BaseResponse,BaseRequest } from './base-api.type';
+import { BaseResponse } from "./base-api.type";
 
 export enum ReservationStatus {
   PENDING = 'PENDING',
@@ -26,24 +26,39 @@ export interface Reservation {
   status: ReservationStatus;
   office_room_uuid: string;
 }
-export interface CreateReservation {
-  event: Event | null;
+
+export interface CreateReservationRequest {
   reservation_title: string;
   user_uuid: string;
   start_date_time: string;
   end_date_time: string;
   durationAsHours: number;
   office_room_uuid: string;
+  participant_uuids?: string[] | null;
+  event?: Event | null;
 }
 
-export interface Event {
-  id?: string;
-  meetingTitle: string;
-  description?: string;
-  attendees?: string[];
-  contactEmail: string;
-  department: string;
-  reservationId?: string;
+export const emptyReservation: CreateReservationRequest = {
+  event: null,
+  reservation_title: "",
+  user_uuid: "",
+  start_date_time: "",
+  end_date_time: "",
+  durationAsHours: 0,
+  office_room_uuid: "",
+  participant_uuids: null
+};
+
+export type createReservationResponse = BaseResponse<string>
+
+export interface EventBookingDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  selectedDate: Date | undefined;
+  selectedTime: string;
+  duration: string;
+  roomName: string;
+  onSubmit: (eventData: Event) => void;
 }
 
 export type CreateReservationType = BaseRequest<CreateReservation>;

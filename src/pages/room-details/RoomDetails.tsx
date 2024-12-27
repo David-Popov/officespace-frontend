@@ -39,42 +39,33 @@ import { cn } from "@/lib/utils";
 import { EventBookingDialog } from "../../components/events/EventBookingDialog";
 import { IssueReportDialog } from "../../components/ticket/IssueReportDialog";
 import { useParams } from "react-router-dom";
-import { emptyOfficeObject, OfficeRoom, RoomStatus, RoomType } from "@/types/offices.types";
+import { emptyOfficeObject, OfficeRoom, RoomStatus } from "@/types/offices.types";
 import { OfficeService } from "@/services/officeService";
-import { ReservationStatus, CreateReservation } from "@/types/reservation.type";
-import { cookieService } from "@/lib/cookie";
-import { API_CONFIG } from "@/config/api.config";
+import {
+  ReservationStatus,
+  Reservation,
+  emptyReservation,
+  Event,
+  CreateReservationRequest,
+} from "@/types/reservation.type";
+import { ReservationService } from "@/services/reservationService";
+import { error } from "console";
 
 const RoomDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [room, setRoom] = useState<OfficeRoom>(emptyOfficeObject);
+  const [reservation, setReservation] = useState<CreateReservationRequest>(emptyReservation);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [duration, setDuration] = useState<string>("1");
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
   const [isIssueReportDialogOpen, setIsIssueReportDialogOpen] = useState(false);
   const service = OfficeService.getInstance();
-  const availableSlots: string[] = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"];
+  const { user, isAuthenticated } = useAuth();
+  const reservationService = ReservationService.getInstance();
 
-  const token = cookieService.get(API_CONFIG.AUTH_COOKIE_NAME);
-  console.log("Token:", token);
-
-  const getUserIdFromToken = (token: string): string => {
-    try {
-      const decoded = jwtDecode<JwtPayload>(token);
-      console.log("Decoded JWT:", decoded);
-      console.log("Decoded ID:", decoded.id);
-      return decoded.id;
-    } catch (error) {
-      console.error("Error decoding token:", error);
-      throw new Error("Failed to decode token");
-    }
-  };
-
-  const userId = token ? getUserIdFromToken(token) : "";
-
-  useEffect(() => {
-    if (id == undefined) {
+  const loadOfficeData = () => {
+    if (id === undefined) {
       return;
     }
 
@@ -82,14 +73,16 @@ const RoomDetailsPage: React.FC = () => {
       .getOfficeById(id)
       .then((data) => {
         setRoom(data);
-        console.log(data);
       })
       .catch((error) => {
         console.error(error);
       });
+  };
+  useEffect(() => {
+    loadOfficeData();
   }, []);
 
-  const getAvailableTimeSlots = (date: Date | undefined, reservations: CreateReservation[]): string[] => {
+  const getAvailableTimeSlots = (date: Date | undefined, reservations: Reservation[]): string[] => {
     const allSlots = [
       "09:00",
       "10:00",
@@ -154,6 +147,39 @@ const RoomDetailsPage: React.FC = () => {
     });
   };
 
+  const updateReservationDateTime = (date: Date | undefined, time: string, duration: string) => {
+    if (!date || !time) return;
+
+    const [hours, minutes] = time.split(":").map(Number);
+    const startDateTime = new Date(date);
+    startDateTime.setHours(hours, minutes, 0, 0);
+
+    const endDateTime = new Date(startDateTime);
+    endDateTime.setHours(startDateTime.getHours() + parseInt(duration));
+
+    setReservation((prev) => ({
+      ...prev,
+      start_date_time: startDateTime.toISOString(),
+      end_date_time: endDateTime.toISOString(),
+      durationAsHours: parseInt(duration),
+      office_room_uuid: id || "",
+      status: "PENDING" as ReservationStatus,
+    }));
+  };
+
+  useEffect(() => {
+    updateReservationDateTime(selectedDate, selectedTime, duration);
+  }, [selectedDate, selectedTime, duration]);
+
+  const handleDateSelect = (date: Date | undefined) => {
+    setSelectedDate(date);
+    setSelectedTime("");
+  };
+
+  const handleTimeSelect = (time: string) => {
+    setSelectedTime(time);
+  };
+
   const handleDurationChange = (newDuration: string) => {
     setDuration(newDuration);
     if (
@@ -164,40 +190,44 @@ const RoomDetailsPage: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    if (selectedDate && room.reservations) {
-      const available = getAvailableTimeSlots(selectedDate, room.reservations);
-      console.log("Available Time Slots:", available);
-    }
-  }, [selectedDate, room.reservations]);
+  const handleEventFormSubmit = (eventData: Event) => {
+    setReservation((prev) => ({
+      ...prev,
+      event: {
+        meetingTitle: eventData.meetingTitle,
+        description: eventData.description,
+        attendees: eventData.attendees,
+        contactEmail: eventData.contactEmail,
+        department: eventData.department,
+        id: eventData.id,
+        reservationId: eventData.reservationId,
+      },
+      reservation_title: eventData.meetingTitle,
+      participant_uuids: /*eventData.attendees ||*/ [],
+      user_uuid: user ? user.Id : "",
+    }));
 
-  const handleBookingSuccess = async () => {
-    resetReservationForm();
-    setIsBookingDialogOpen(false);
-
-    if (id) {
-      try {
-        const updatedRoom = await service.getOfficeById(id);
-        setRoom(updatedRoom);
-      } catch (error) {
-        console.error("Error refreshing room data:", error);
-        alert("Reservation successful, but failed to update room data.");
-      }
-    }
-  };
-
-  const resetReservationForm = () => {
-    setSelectedDate(undefined);
-    setSelectedTime("");
-    setDuration("1");
+    console.log("Final reservation object:", reservation);
   };
 
   useEffect(() => {
-    if (selectedDate && room.reservations) {
-      const available = getAvailableTimeSlots(selectedDate, room.reservations);
-      console.log("Updated Available Time Slots:", available);
+    console.log(reservation);
+    if (
+      reservation.event &&
+      reservation.start_date_time &&
+      reservation.end_date_time &&
+      reservation.user_uuid
+    ) {
+      reservationService
+        .makeReservation(reservation)
+        .then(() => {
+          loadOfficeData();
+        })
+        .catch((error) => {
+          console.log("Error: " + JSON.stringify(error));
+        });
     }
-  }, [selectedDate, room.reservations]);
+  }, [reservation]);
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-6xl space-y-8">
@@ -257,11 +287,11 @@ const RoomDetailsPage: React.FC = () => {
                       variant="default"
                       className={cn(
                         room.status === RoomStatus.AVAILABLE &&
-                        "bg-green-100 text-green-800 hover:bg-green-100",
+                          "bg-green-100 text-green-800 hover:bg-green-100",
                         room.status === RoomStatus.OCCUPIED &&
-                        "bg-red-100 text-red-800 hover:bg-red-100",
+                          "bg-red-100 text-red-800 hover:bg-red-100",
                         room.status === RoomStatus.PENDING &&
-                        "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
+                          "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
                       )}
                     >
                       {room.status}
@@ -294,11 +324,11 @@ const RoomDetailsPage: React.FC = () => {
                           variant="default"
                           className={cn(
                             reservation.status === ReservationStatus.CONFIRMED &&
-                            "bg-green-100 text-green-800 hover:bg-green-100",
+                              "bg-green-100 text-green-800 hover:bg-green-100",
                             reservation.status === ReservationStatus.PENDING &&
-                            "bg-yellow-100 text-yellow-800 hover:bg-yellow-100",
+                              "bg-yellow-100 text-yellow-800 hover:bg-yellow-100",
                             reservation.status === ReservationStatus.CANCELLED &&
-                            "bg-red-100 text-red-800 hover:bg-red-100"
+                              "bg-red-100 text-red-800 hover:bg-red-100"
                           )}
                         >
                           {reservation.status}
@@ -317,137 +347,121 @@ const RoomDetailsPage: React.FC = () => {
               </TabsContent>
             </Tabs>
           </CardContent>
-          <CardFooter className="flex justify-between">
-            <div className="ml-auto">
-              <Button
-                variant="outline"
-                onClick={() => setIsIssueReportDialogOpen(true)}
-              >
-                <AlertCircle className="w-4 h-4 mr-2" />
-                Report Issue
-              </Button>
-            </div>
-          </CardFooter>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Make a Reservation</CardTitle>
-            <CardDescription>Select your preferred date and time</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label>Select Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !selectedDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    initialFocus
-                    disabled={(date) =>
-                      date < new Date() || date.getDay() === 0 || date.getDay() === 6
-                    }
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Select Time Slot</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {selectedDate ? (
-                  getAvailableTimeSlots(selectedDate, room.reservations).map((time) => (
+        {isAuthenticated ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Make a Reservation</CardTitle>
+              <CardDescription>Select your preferred date and time</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label>Select Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
                     <Button
-                      key={time}
-                      variant={selectedTime === time ? "default" : "outline"}
+                      variant="outline"
                       className={cn(
-                        "w-full",
-                        !selectedDate ||
-                          (duration &&
-                            parseInt(duration) > 1 &&
-                            !isSlotAvailableForDuration(selectedDate, time, parseInt(duration)))
-                          ? "opacity-50 cursor-not-allowed"
-                          : ""
-                      )}
-                      onClick={() => setSelectedTime(time)}
-                      disabled={Boolean(
-                        !selectedDate ||
-                        (duration &&
-                          parseInt(duration) > 1 &&
-                          !isSlotAvailableForDuration(selectedDate, time, parseInt(duration)))
+                        "w-full justify-start text-left font-normal",
+                        !selectedDate && "text-muted-foreground"
                       )}
                     >
-                      <Clock className="w-4 h-4 mr-2" />
-                      {time}
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
                     </Button>
-                  ))
-                ) : (
-                  <p className="col-span-2 text-center text-muted-foreground">
-                    Please select a date first
-                  </p>
-                )}
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={handleDateSelect}
+                      initialFocus
+                      disabled={(date) =>
+                        date < new Date() || date.getDay() === 0 || date.getDay() === 6
+                      }
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label>Duration</Label>
-              <Select value={duration} onValueChange={setDuration}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select duration" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1 hour</SelectItem>
-                  <SelectItem value="2">2 hours</SelectItem>
-                  <SelectItem value="3">3 hours</SelectItem>
-                  <SelectItem value="4">4 hours</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button
-              className="w-full"
-              size="lg"
-              disabled={!selectedDate || !selectedTime || room.status !== RoomStatus.AVAILABLE}
-              onClick={() => setIsBookingDialogOpen(true)}
-            >
-              Continue to Book
-              <ChevronRight className="w-4 h-4 ml-2" />
-            </Button>
-          </CardFooter>
-        </Card>
+              <div className="space-y-2">
+                <Label>Select Time Slot</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {selectedDate ? (
+                    getAvailableTimeSlots(selectedDate, room.reservations).map((time) => (
+                      <Button
+                        key={time}
+                        variant={selectedTime === time ? "default" : "outline"}
+                        className={cn(
+                          "w-full",
+                          !selectedDate ||
+                            (duration &&
+                              parseInt(duration) > 1 &&
+                              !isSlotAvailableForDuration(selectedDate, time, parseInt(duration)))
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        )}
+                        onClick={() => setSelectedTime(time)}
+                        disabled={Boolean(
+                          !selectedDate ||
+                            (duration &&
+                              parseInt(duration) > 1 &&
+                              !isSlotAvailableForDuration(selectedDate, time, parseInt(duration)))
+                        )}
+                      >
+                        <Clock className="w-4 h-4 mr-2" />
+                        {time}
+                      </Button>
+                    ))
+                  ) : (
+                    <p className="col-span-2 text-center text-muted-foreground">
+                      Please select a date first
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Duration</Label>
+                <Select value={duration} onValueChange={handleDurationChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select duration" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 hour</SelectItem>
+                    <SelectItem value="2">2 hours</SelectItem>
+                    <SelectItem value="3">3 hours</SelectItem>
+                    <SelectItem value="4">4 hours</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button
+                className="w-full"
+                size="lg"
+                disabled={!selectedDate || !selectedTime || room.status !== RoomStatus.AVAILABLE}
+                onClick={() => setIsBookingDialogOpen(true)}
+              >
+                Continue to Book
+                <ChevronRight className="w-4 h-4 ml-2" />
+              </Button>
+            </CardFooter>
+          </Card>
+        ) : (
+          ""
+        )}
       </div>
 
       <EventBookingDialog
         isOpen={isBookingDialogOpen}
         onClose={() => setIsBookingDialogOpen(false)}
-        onSuccess={handleBookingSuccess}
         selectedDate={selectedDate}
         selectedTime={selectedTime}
         duration={duration}
         roomName={room.office_room_name}
-        roomId={room.id}
-        userId={userId}
-      />
-
-      <IssueReportDialog
-        isOpen={isIssueReportDialogOpen}
-        onClose={() => setIsIssueReportDialogOpen(false)}
-        roomId={room.id}
-        userId={userId}
+        onSubmit={handleEventFormSubmit}
       />
     </div>
   );

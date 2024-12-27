@@ -45,6 +45,9 @@ export type Endpoints = {
         readonly GET_ALL_BY_USER: string;
         readonly DELETE: string;
     };
+    readonly RESERVATIONS: {
+        readonly MAKE_RESERVATION: string;
+    }
 };
 
     export type ApiConfig = {
