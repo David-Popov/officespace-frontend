@@ -45,6 +45,7 @@ interface ReservationDto {
 
 const UserProfile: React.FC = () => {
   const { user } = useAuth();
+  console.log("UserProfile ", user);
   const [openModal, setOpenModal] = React.useState(false);
   const [selectedReservation, setSelectedReservation] = React.useState<string | null>(null);
 
@@ -94,7 +95,6 @@ const UserProfile: React.FC = () => {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      {/* User Information Card */}
       <Card className="mb-8">
         <CardHeader>
           <CardTitle>Profile Information</CardTitle>
@@ -132,17 +132,16 @@ const UserProfile: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Reservations Card */}
       <Card>
         <CardHeader>
           <CardTitle>My Reservations</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {reservations.length === 0 ? (
+            {user?.reservations.length === 0 ? (
               <p className="text-center text-muted-foreground">No reservations found</p>
             ) : (
-              reservations.map((reservation) => (
+              user?.reservations.map((reservation) => (
                 <div
                   key={reservation.office_room_uuid}
                   className={`flex flex-col p-4 border rounded-lg ${
@@ -198,7 +197,6 @@ const UserProfile: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Confirmation Modal */}
       <AlertDialog open={openModal} onOpenChange={setOpenModal}>
         <AlertDialogContent>
           <AlertDialogHeader>

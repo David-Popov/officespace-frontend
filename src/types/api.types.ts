@@ -17,6 +17,9 @@ export type Endpoints = {
         readonly GET_OFFICES: string;
         readonly GET_OFFICE_DATA: string;
     };
+    readonly RESERVATIONS: {
+        readonly MAKE_RESERVATION: string;
+    }
 };
 
 export type ApiConfig = {

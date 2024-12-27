@@ -1,4 +1,8 @@
 import React, { useState } from "react";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Calendar, Clock, Users } from "lucide-react";
+import { Textarea } from "../ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -6,13 +10,20 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+} from "../ui/dialog";
+import { Event } from "@/types/reservation.type";
 import { format } from "date-fns";
-import { Calendar, Clock, Users } from "lucide-react";
+import { Button } from "../ui/button";
+
+interface EventBookingDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  selectedDate: Date | undefined;
+  selectedTime: string;
+  duration: string;
+  roomName: string;
+  onSubmit: (eventData: Event) => void;
+}
 
 interface BookingFormData {
   title: string;
@@ -22,14 +33,15 @@ interface BookingFormData {
   department: string;
 }
 
-export const EventBookingDialog: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  selectedDate: Date | undefined;
-  selectedTime: string;
-  duration: string;
-  roomName: string;
-}> = ({ isOpen, onClose, selectedDate, selectedTime, duration, roomName }) => {
+export const EventBookingDialog: React.FC<EventBookingDialogProps> = ({
+  isOpen,
+  onClose,
+  selectedDate,
+  selectedTime,
+  duration,
+  roomName,
+  onSubmit,
+}) => {
   const [formData, setFormData] = useState<BookingFormData>({
     title: "",
     description: "",
@@ -38,16 +50,30 @@ export const EventBookingDialog: React.FC<{
     department: "",
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would handle the form submission
-    console.log("Form submitted:", {
-      ...formData,
-      date: selectedDate,
-      time: selectedTime,
-      duration: duration,
+
+    const eventData: Event = {
+      meetingTitle: formData.title,
+      description: formData.description,
+      attendees: formData.attendees
+        .split(",")
+        .map((email) => email.trim())
+        .filter((email) => email !== ""),
+      contactEmail: formData.email,
+      department: formData.department,
+    };
+
+    onSubmit(eventData);
+
+    setFormData({
+      title: "",
+      description: "",
+      attendees: "",
+      email: "",
+      department: "",
     });
-    // Call your API to create the booking
+
     onClose();
   };
 
@@ -59,6 +85,11 @@ export const EventBookingDialog: React.FC<{
     }));
   };
 
+  const formatDate = (date: Date | undefined) => {
+    if (!date) return "No date selected";
+    return format(new Date(date), "PPP");
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
@@ -67,11 +98,11 @@ export const EventBookingDialog: React.FC<{
           <DialogDescription>Fill in the details for your meeting reservation</DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleFormSubmit} className="space-y-6">
           <div className="bg-muted p-4 rounded-lg space-y-2">
             <div className="flex items-center gap-2 text-sm">
               <Calendar className="w-4 h-4" />
-              <span>{selectedDate ? format(selectedDate, "PPP") : "No date selected"}</span>
+              <span>{formatDate(selectedDate)}</span>
             </div>
             <div className="flex items-center gap-2 text-sm">
               <Clock className="w-4 h-4" />
@@ -147,7 +178,7 @@ export const EventBookingDialog: React.FC<{
           </div>
 
           <DialogFooter className="gap-2">
-            <Button variant="outline" type="button" onClick={onClose}>
+            <Button variant="outline" onClick={onClose} type="button">
               Cancel
             </Button>
             <Button type="submit">Confirm Booking</Button>

@@ -36,6 +36,9 @@ export const API_CONFIG: ApiConfig = {
         OFFICES: {
             GET_OFFICES: '/office-rooms',
             GET_OFFICE_DATA: '/office-rooms/'
+        },
+        RESERVATIONS: {
+            MAKE_RESERVATION: '/reservations/create'
         }
     }
 } as const;

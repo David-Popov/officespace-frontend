@@ -12,11 +12,8 @@ import RoomListing from "./pages/office-rooms/OfficeRooms.tsx";
 import Users from "./pages/users/Users.tsx";
 import RoomDetailsPage from "./pages/room-details/RoomDetails.tsx";
 import { AuthProvider } from "./contexts/UserContext.tsx";
-<<<<<<< Updated upstream
-=======
 import EditUser from "./pages/edit-user/EditUser.tsx";
 import UserProfile from "./pages/user-profile/UserProfile.tsx";
->>>>>>> Stashed changes
 
 const RootLayout = () => {
   return (
