@@ -49,7 +49,6 @@ import {
   CreateReservationRequest,
 } from "@/types/reservation.type";
 import { ReservationService } from "@/services/reservationService";
-import { error } from "console";
 
 const RoomDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -191,6 +190,7 @@ const RoomDetailsPage: React.FC = () => {
   };
 
   const handleEventFormSubmit = (eventData: Event) => {
+    console.log("User on reservation create: ", user);
     setReservation((prev) => ({
       ...prev,
       event: {
