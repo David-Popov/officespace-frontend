@@ -1,28 +1,18 @@
 import { createContext, FC, PropsWithChildren, useState, useEffect, useCallback } from "react";
 import { jwtDecode } from "jwt-decode";
 import { AuthService } from "@/services/authService";
-import { User } from "@/types/users.types";
-import { LoginUserRequest, LoginResponseType } from "@/types/auth.types";
+// import { User } from "@/types/users.types";
+import {
+  LoginUserRequest,
+  LoginResponseType,
+  AuthState,
+  AuthContextData,
+} from "@/types/auth.types";
 import { API_CONFIG } from "@/config/api.config";
 import { cookieService } from "@/lib/cookie";
 import React from "react";
-import { stat } from "fs";
 import { JwtPayload } from "@/types/jwt.types";
-
-interface AuthState {
-  user: User | null;
-  isAuthenticated: boolean;
-  isAdmin: boolean;
-  isLoading: boolean;
-  error: string | null;
-}
-
-interface AuthContextData extends AuthState {
-  login: (credentials: LoginUserRequest) => Promise<void>;
-  logout: () => void;
-  refreshUser: () => void;
-  clearError: () => void;
-}
+import { UserService } from "@/services/userService";
 
 const initialState: AuthState = {
   user: null,
@@ -36,36 +26,17 @@ const AuthContext = createContext<AuthContextData>({
   ...initialState,
   login: async () => {},
   logout: () => {},
-  refreshUser: () => {},
+  reloadUser: async () => {},
   clearError: () => {},
 });
 
 export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   const [state, setState] = useState<AuthState>(initialState);
   const authService = AuthService.getInstance();
+  const userService = UserService.getInstance();
 
   const updateState = (updates: Partial<AuthState>) => {
     setState((current) => ({ ...current, ...updates }));
-  };
-
-  const getUserFromToken = (token: string): User => {
-    try {
-      const decoded = jwtDecode<JwtPayload>(token);
-      return {
-        Id: decoded.id,
-        username: decoded.username,
-        email: decoded.email,
-        firstName: decoded.firstName,
-        lastName: decoded.lastName,
-        phone: decoded.phone,
-        roleId: decoded.roleId,
-        roleName: decoded.roleName,
-        reservations: decoded.reservations,
-      };
-    } catch (error) {
-      console.error("Error decoding token:", error);
-      throw new Error("Invalid token");
-    }
   };
 
   const login = async (credentials: LoginUserRequest): Promise<void> => {
@@ -81,21 +52,20 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
           throw new Error("No token received after login");
         }
 
-        console.log("reservation ", response.data?.user?.reservations);
-        const user = getUserFromToken(token);
-        user.reservations = response.data?.user?.reservations || [];
+        const user = response.data?.user;
         updateState({
           user,
           isAuthenticated: true,
-          isAdmin: user.roleName.toUpperCase() === "ADMIN",
+          isAdmin: user!.roleName.toUpperCase() === "ADMIN",
           isLoading: false,
           error: null,
         });
       } else {
         throw new Error("Login failed");
       }
-    } catch (error) {
+    } catch (error: any) {
       let errorMessage = "Login failed";
+
       if (error instanceof Error) {
         errorMessage = error.message;
       } else if ((error as LoginResponseType).errorDescription) {
@@ -127,29 +97,31 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
     });
   }, []);
 
-  const refreshUser = useCallback(() => {
+  const checkTokenAndLoadUser = useCallback(async () => {
+    const token = cookieService.get(API_CONFIG.AUTH_COOKIE_NAME);
+
+    if (!token) {
+      updateState({
+        user: null,
+        isAuthenticated: false,
+        isAdmin: false,
+        isLoading: false,
+        error: null,
+      });
+      return;
+    }
+
     try {
-      const token = cookieService.get(API_CONFIG.AUTH_COOKIE_NAME);
-
-      if (!token) {
-        updateState({
-          user: null,
-          isAuthenticated: false,
-          isAdmin: false,
-          isLoading: false,
-          error: null,
-        });
-        return;
-      }
-
       const decoded = jwtDecode<JwtPayload>(token);
-
       if (Date.now() >= decoded.exp * 1000) {
         logout();
         return;
       }
 
-      const user = getUserFromToken(token);
+      // Token is valid, get fresh user data from backend
+      const response = await userService.getUserByEmail(decoded.email);
+      const user = response.data!;
+
       updateState({
         user,
         isAuthenticated: true,
@@ -158,24 +130,47 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
         error: null,
       });
     } catch (error) {
-      console.error("Refresh user error:", error);
+      console.error("Token validation or user load error:", error);
       logout();
     }
-  }, [logout]);
+  }, [logout, userService]);
+
+  const reloadUser = async (email: string): Promise<void> => {
+    try {
+      if (!email) {
+        throw new Error("Email cannot be null or empty");
+      }
+
+      const response = await userService.getUserByEmail(email);
+      const user = response.data!;
+
+      updateState({
+        user,
+        isAuthenticated: true,
+        isAdmin: user.roleName.toUpperCase() === "ADMIN",
+        isLoading: false,
+        error: null,
+      });
+    } catch (error: any) {
+      throw new Error(error.message);
+    }
+  };
 
   const clearError = useCallback(() => {
     updateState({ error: null });
   }, []);
 
   useEffect(() => {
-    refreshUser();
-  }, [refreshUser]);
+    checkTokenAndLoadUser();
+    const interval = setInterval(checkTokenAndLoadUser, 60000);
+    return () => clearInterval(interval);
+  }, [checkTokenAndLoadUser]);
 
   const value: AuthContextData = {
     ...state,
     login,
     logout,
-    refreshUser,
+    reloadUser,
     clearError,
   };
 

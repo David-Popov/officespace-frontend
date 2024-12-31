@@ -21,7 +21,8 @@ export const API_CONFIG: ApiConfig = {
             LOGIN: '/auth/login',
             LOGOUT: '/auth/logout',
             REFRESH: '/auth/refresh',
-            REGISTER: '/auth/register'
+            REGISTER: '/auth/register',
+            GET_LOGGED_USER: '/auth/logged-user'
         },
         USERS: {
             // PROFILE: '/users/profile',
@@ -32,7 +33,12 @@ export const API_CONFIG: ApiConfig = {
         ADMIN: {
             GETUSERS: '/admin/get-users',
             DELETEUSER: '/admin/delete-user/',
-            UPDATE_USER: '/admin/update'
+            DELETECOMPANY: '/admin/delete-company/',
+            UPDATE_USER: '/admin/update-user/',
+            GETCOMPANIES: '/admin/get-companies',
+            GETRESERVATIONS: '/admin/get-reservations',
+            GET_COMPANY_BY_ID: '/admin/get-company/',
+            UPDATE_COMPANY: '/admin/update-company/'
         },
         OFFICES: {
             GET_OFFICES: '/office-rooms',
@@ -65,6 +71,9 @@ export const API_CONFIG: ApiConfig = {
             GET_ALL_BY_USER: '/tickets/all/{userId}',
             DELETE: '/tickets/delete/{id}',
         },
+        NOTIFICATIONS: {
+            MARK_AS_READ: '/notification/read/'
+        }
     },
 } as const;
 
@@ -73,7 +82,9 @@ export const getFullUrl = (endpoint: string): string => {
 };
 
 export const getCookieOptions = (expiryDays: number = API_CONFIG.TOKEN_EXPIRY_DAYS) => ({
-    expires: expiryDays,
+    expires: new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000),
     secure: API_CONFIG.IS_PRODUCTION,
-    sameSite: 'strict' as const
+    sameSite: 'strict' as const,
+    path: '/',
+    httpOnly: true
 });

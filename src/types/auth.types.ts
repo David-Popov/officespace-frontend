@@ -1,6 +1,21 @@
 import { BaseRequest, BaseResponse } from "./base-api.type";
 import { User } from "./users.types";
 
+export interface AuthState {
+  user: User | null;
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+  isLoading: boolean;
+  error: string | null;
+}
+
+export interface AuthContextData extends AuthState {
+  login: (credentials: LoginUserRequest) => Promise<void>;
+  logout: () => void;
+  reloadUser: (email: string) => Promise<void>;
+  clearError: () => void;
+}
+
 export interface RegisterUserRequest {
     email: string;
     username: string;

@@ -1,5 +1,6 @@
 import { BaseRequest } from "./base-api.type";
-import { Reservation } from "./reservation.type";
+import { Payment } from "./payment.types";
+import { ReservationDto } from "./reservation.type";
 
 export interface User {
   Id: string;
@@ -12,7 +13,17 @@ export interface User {
   // address: string;
   roleId: number;
   roleName: string;
-  reservations: Reservation[];
+  reservations: ReservationDto[];
+  payments: Payment[];
+  notifications: UserNotificationDto[];
+}
+
+export interface UserNotificationDto{
+  id: string;
+  message: string;
+  notificationType: string,
+  read: boolean
+  notificationDate: Date
 }
 
 export interface RefreshTokenRequest {

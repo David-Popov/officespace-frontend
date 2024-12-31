@@ -1,10 +1,8 @@
-// src/pages/users/EditUser.tsx
 import React, { FC, useState, useEffect, FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { AdminService } from "@/services/adminService";
-import { User } from "@/types/users.types";
+import { CompanyDto } from "@/types/company.type";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -14,10 +12,11 @@ import {
   AlertDialogFooter,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import { AdminService } from "@/services/adminService";
 
-const EditUser: FC = () => {
+const EditCompany: FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [user, setUser] = useState<User | null>(null);
+  const [company, setCompany] = useState<CompanyDto | null>(null);
   const [error, setError] = useState<string>("");
   const [successModal, setSuccessModal] = useState(false);
   const [errorModal, setErrorModal] = useState(false);
@@ -28,13 +27,13 @@ const EditUser: FC = () => {
   useEffect(() => {
     if (id) {
       service
-        .getUserById(id)
-        .then((data: User) => {
-          setUser(data);
+        .getCompanyById(id)
+        .then((data: CompanyDto) => {
+          setCompany(data);
         })
-        .catch((error) => {
-          console.error("Error fetching user:", error);
-          setError(error.message || "Failed to fetch user");
+        .catch((error: any) => {
+          console.error("Error fetching company:", error);
+          setError(error.message || "Failed to fetch company");
           setErrorModal(true);
         });
     }
@@ -42,15 +41,15 @@ const EditUser: FC = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted with user:", user);
+    console.log("Form submitted with company:", company);
 
-    if (!user) {
-      console.log("User is null, returning");
+    if (!company) {
+      console.log("Company is null, returning");
       return;
     }
 
     try {
-      await service.updateUser(user);
+      await service.updateCompany(company);
       console.log("Update successful");
       setSuccessModal(true);
 
@@ -64,64 +63,50 @@ const EditUser: FC = () => {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setUser((prev) => (prev ? { ...prev, [name]: value } : null));
+    setCompany((prev) => (prev ? { ...prev, [name]: value } : null));
   };
 
-  if (!user) return <div>Loading...</div>;
+  if (!company) return <div>Loading...</div>;
 
   return (
     <div className="w-full p-4">
       <div className="max-w-2xl mx-auto">
-        <h2 className="text-2xl font-bold mb-6">Edit User</h2>
+        <h2 className="text-2xl font-bold mb-6">Edit Company</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
+            <label className="block text-sm font-medium mb-1">Company Name</label>
             <Input
-              type="email"
-              name="email"
-              value={user.email}
+              type="text"
+              name="name"
+              value={company.name}
               onChange={handleInputChange}
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Username</label>
+            <label className="block text-sm font-medium mb-1">Address</label>
             <Input
               type="text"
-              name="username"
-              value={user.username}
+              name="address"
+              value={company.address}
               onChange={handleInputChange}
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">First Name</label>
+            <label className="block text-sm font-medium mb-1">Type</label>
             <Input
               type="text"
-              name="firstName"
-              value={user.firstName || ""}
+              name="type"
+              value={company.type}
               onChange={handleInputChange}
+              required
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Last Name</label>
-            <Input
-              type="text"
-              name="lastName"
-              value={user.lastName || ""}
-              onChange={handleInputChange}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Phone</label>
-            <Input type="text" name="phone" value={user.phone || ""} onChange={handleInputChange} />
           </div>
 
           <div className="flex justify-end space-x-4 pt-4">
@@ -129,7 +114,7 @@ const EditUser: FC = () => {
               type="button"
               variant="outline"
               onClick={() => {
-                navigate("/users");
+                navigate("/companies");
               }}
             >
               Cancel
@@ -144,14 +129,14 @@ const EditUser: FC = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Success</AlertDialogTitle>
             <AlertDialogDescription>
-              User has been updated successfully (redirect in 3 seconds).
+              Company has been updated successfully (redirect in 3 seconds).
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction
               onClick={() => {
                 setSuccessModal(false);
-                window.location.href = "/users";
+                window.location.href = "/companies";
               }}
             >
               OK
@@ -175,4 +160,4 @@ const EditUser: FC = () => {
   );
 };
 
-export default EditUser;
+export default EditCompany;
