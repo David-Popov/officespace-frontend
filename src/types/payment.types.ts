@@ -31,11 +31,9 @@ export interface ConfirmPaymentRequest {
     amount: number;
     currency: string;
     description: string;
-    quantity: number;
+    userId: string;
     sessionId: string;
 }
-
-
 
 export type PaymentSessionRequestType = BaseRequest<PaymentSessionRequest>
 export type PaymentSessionResponseType = BaseResponse<PaymentSessionResponse>

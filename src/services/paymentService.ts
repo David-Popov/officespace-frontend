@@ -51,6 +51,8 @@ export class PaymentService {
     try {
       const confirmPaymentRequest = createRequest(data);
 
+      console.log("confirmPaymentRequest at service: ", confirmPaymentRequest)
+
       const response: AxiosResponse<BaseResponse<Payment>> = await api.post(
         `${API_CONFIG.ENDPOINTS.PAYMENTS.CONFIRM_PAYMENT}`,
         confirmPaymentRequest

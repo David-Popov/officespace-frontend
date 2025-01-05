@@ -4,8 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EventBookingDialog } from "../../components/events/EventBookingDialog";
 import { IssueReportDialog } from "../../components/ticket/IssueReportDialog";
-import { useNavigate, useParams } from "react-router-dom";
-import { emptyOfficeObject, OfficeRoom, RoomStatus } from "@/types/offices.types";
+import { useParams } from "react-router-dom";
+import { emptyOfficeObject, OfficeRoom } from "@/types/offices.types";
 import { OfficeService } from "@/services/officeService";
 import {
   ReservationStatus,
@@ -16,13 +16,48 @@ import {
 } from "@/types/reservation.type";
 import { ReservationService } from "@/services/reservationService";
 import { PaymentService } from "@/services/paymentService";
-import { error } from "console";
 import { ConfirmPaymentRequest, PaymentSessionRequest } from "@/types/payment.types";
 import { ReservationForm } from "@/components/rooms/office-rooms-details/ReservationForm";
 import { ReservationList } from "@/components/rooms/office-rooms-details/ReservationList";
 import { CompanyInfo } from "@/components/rooms/office-rooms-details/CompanyInfo";
 import { RoomDetails } from "@/components/rooms/office-rooms-details/RoomDetails";
 import { RoomHeader } from "@/components/rooms/office-rooms-details/RoomHeader";
+
+const preparePaymentSessionRequest = (
+  reservation: CreateReservationRequest,
+  roomName: string,
+  pricePerHour: number,
+  userId: string
+): PaymentSessionRequest => {
+  const description = `Event Title: ${reservation.event?.meetingTitle} - Room: ${roomName} - Duration: ${reservation.durationAsHours} Hours`;
+
+  return {
+    amount: pricePerHour,
+    currency: "usd",
+    description,
+    quantity: reservation.durationAsHours,
+    userId,
+  };
+};
+
+const prepareConfirmRequest = (
+  sessionId: string,
+  userId: string,
+  paymentRequest: PaymentSessionRequest
+): ConfirmPaymentRequest => {
+  return {
+    sessionId: sessionId,
+    amount: paymentRequest.amount,
+    currency: paymentRequest.currency,
+    description: paymentRequest.description,
+    userId: userId,
+  };
+};
+
+const savePaymentData = (sessionId: string, confirmRequest: ConfirmPaymentRequest) => {
+  localStorage.setItem("stripeSessionId", sessionId);
+  localStorage.setItem("confirmPaymentRequest", JSON.stringify(confirmRequest));
+};
 
 const RoomDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -37,7 +72,6 @@ const RoomDetailsPage: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const reservationService = ReservationService.getInstance();
   const paymentService = PaymentService.getInstance();
-  const navigate = useNavigate();
 
   const loadOfficeData = () => {
     if (id === undefined) {
@@ -53,6 +87,7 @@ const RoomDetailsPage: React.FC = () => {
         console.error(error);
       });
   };
+
   useEffect(() => {
     loadOfficeData();
   }, []);
@@ -168,10 +203,41 @@ const RoomDetailsPage: React.FC = () => {
     }
   };
 
+  const handlePayment = async (reservation: CreateReservationRequest) => {
+    try {
+      if (!user?.Id) {
+        throw new Error("User not authenticated");
+      }
+
+      const paymentSessionRequest = preparePaymentSessionRequest(
+        reservation,
+        room.officeRoomName,
+        room.pricePerHour,
+        user.Id
+      );
+
+      const session = await paymentService.createSession(paymentSessionRequest);
+      console.log("Session created:", session);
+
+      const confirmRequest = prepareConfirmRequest(
+        session.sessionId,
+        user.Id,
+        paymentSessionRequest
+      );
+
+      savePaymentData(session.sessionId, confirmRequest);
+
+      await reservationService.makeReservation(reservation);
+
+      window.location.replace(session.stripePaymentUrl);
+    } catch (error) {
+      console.error("Payment initialization failed:", error);
+    }
+  };
+
   const handleEventFormSubmit = (eventData: Event) => {
-    console.log("User on reservation create: ", user);
-    setReservation((prev) => ({
-      ...prev,
+    const updatedReservation: CreateReservationRequest = {
+      ...reservation,
       event: {
         meetingTitle: eventData.meetingTitle,
         description: eventData.description,
@@ -182,76 +248,21 @@ const RoomDetailsPage: React.FC = () => {
         reservationId: eventData.reservationId,
       },
       reservation_title: eventData.meetingTitle,
-      participant_uuids: /*eventData.attendees ||*/ [],
-      user_uuid: user ? user.Id : "",
-    }));
-  };
+      participant_uuids: [],
+      user_uuid: user?.Id || "",
+    };
 
-  const handlePayment = async (paymentRequest: PaymentSessionRequest) => {
-    try {
-      const paymentRequestWithQuantity = {
-        ...paymentRequest,
-        quantity: parseInt(duration),
-      };
-      const session = await paymentService.createSession(paymentRequestWithQuantity);
-      localStorage.setItem("stripeSessionId", session.sessionId);
-      window.location.replace(session.stripePaymentUrl);
-    } catch (error) {
-      console.error("Payment initialization failed:", error);
-    }
-  };
-
-  const handlePaymentSuccess = async (amount: number, currency: string, description: string) => {
-    const sessionId = localStorage.getItem("stripeSessionId");
-    if (!sessionId) return;
-
-    try {
-      const confirmRequest: ConfirmPaymentRequest = {
-        sessionId,
-        amount,
-        currency,
-        description,
-        quantity: parseInt(duration),
-      };
-
-      await paymentService.confirmPayment(confirmRequest);
-      localStorage.removeItem("stripeSessionId");
-    } catch (error) {
-      console.error("Payment confirmation failed:", error);
-    }
+    setReservation(updatedReservation);
   };
 
   useEffect(() => {
-    console.log(reservation);
     if (
       reservation.event &&
       reservation.start_date_time &&
       reservation.end_date_time &&
       reservation.user_uuid
     ) {
-      let currency = "usd";
-      let description = `Event Title: ${reservation.event.meetingTitle} - Room: ${room.officeRoomName} - Duration: ${reservation.durationAsHours} Hours`;
-      console.log("Room Price for hour: ", room.pricePerHour);
-      console.log("Room: ", room);
-      const paymentSessionRequest: PaymentSessionRequest = {
-        amount: room.pricePerHour,
-        currency: currency,
-        description: description,
-        quantity: reservation.durationAsHours,
-        userId: user?.Id!,
-      };
-
-      handlePayment(paymentSessionRequest);
-      handlePaymentSuccess(room.pricePerHour, currency, description);
-
-      reservationService
-        .makeReservation(reservation)
-        .then(() => {
-          loadOfficeData();
-        })
-        .catch((error) => {
-          console.log("Error: " + JSON.stringify(error));
-        });
+      handlePayment(reservation);
     }
   }, [reservation]);
 
