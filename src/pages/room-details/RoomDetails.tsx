@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/UserContext";
-import { jwtDecode } from "jwt-decode";
-import { JwtPayload } from "@/types/jwt.types";
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -38,17 +36,24 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { EventBookingDialog } from "../../components/events/EventBookingDialog";
 import { IssueReportDialog } from "../../components/ticket/IssueReportDialog";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { emptyOfficeObject, OfficeRoom, RoomStatus } from "@/types/offices.types";
 import { OfficeService } from "@/services/officeService";
 import {
   ReservationStatus,
-  Reservation,
+  ReservationDto,
   emptyReservation,
   Event,
   CreateReservationRequest,
 } from "@/types/reservation.type";
 import { ReservationService } from "@/services/reservationService";
+import { PaymentService } from "@/services/paymentService";
+import { error } from "console";
+import {
+  ConfirmPaymentRequest,
+  PaymentSessionRequest,
+  PaymentSessionResponse,
+} from "@/types/payment.types";
 
 const RoomDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -62,7 +67,8 @@ const RoomDetailsPage: React.FC = () => {
   const service = OfficeService.getInstance();
   const { user, isAuthenticated } = useAuth();
   const reservationService = ReservationService.getInstance();
-
+  const paymentService = PaymentService.getInstance();
+  const navigate = useNavigate();
   const loadOfficeData = () => {
     if (id === undefined) {
       return;
@@ -81,7 +87,10 @@ const RoomDetailsPage: React.FC = () => {
     loadOfficeData();
   }, []);
 
-  const getAvailableTimeSlots = (date: Date | undefined, reservations: Reservation[]): string[] => {
+  const getAvailableTimeSlots = (
+    date: Date | undefined,
+    reservations: ReservationDto[]
+  ): string[] => {
     const allSlots = [
       "09:00",
       "10:00",
@@ -206,8 +215,40 @@ const RoomDetailsPage: React.FC = () => {
       participant_uuids: /*eventData.attendees ||*/ [],
       user_uuid: user ? user.Id : "",
     }));
+  };
 
-    console.log("Final reservation object:", reservation);
+  const handlePayment = async (paymentRequest: PaymentSessionRequest) => {
+    try {
+      const paymentRequestWithQuantity = {
+        ...paymentRequest,
+        quantity: parseInt(duration),
+      };
+      const session = await paymentService.createSession(paymentRequestWithQuantity);
+      localStorage.setItem("stripeSessionId", session.sessionId);
+      window.location.replace(session.stripePaymentUrl);
+    } catch (error) {
+      console.error("Payment initialization failed:", error);
+    }
+  };
+
+  const handlePaymentSuccess = async (amount: number, currency: string, description: string) => {
+    const sessionId = localStorage.getItem("stripeSessionId");
+    if (!sessionId) return;
+
+    try {
+      const confirmRequest: ConfirmPaymentRequest = {
+        sessionId,
+        amount,
+        currency,
+        description,
+        quantity: parseInt(duration),
+      };
+
+      await paymentService.confirmPayment(confirmRequest);
+      localStorage.removeItem("stripeSessionId");
+    } catch (error) {
+      console.error("Payment confirmation failed:", error);
+    }
   };
 
   useEffect(() => {
@@ -218,6 +259,21 @@ const RoomDetailsPage: React.FC = () => {
       reservation.end_date_time &&
       reservation.user_uuid
     ) {
+      let currency = "usd";
+      let description = `Event Title: ${reservation.event.meetingTitle} - Room: ${room.officeRoomName} - Duration: ${reservation.durationAsHours} Hours`;
+      console.log("Room Price for hour: ", room.pricePerHour);
+      console.log("Room: ", room);
+      const paymentSessionRequest: PaymentSessionRequest = {
+        amount: room.pricePerHour,
+        currency: currency,
+        description: description,
+        quantity: reservation.durationAsHours,
+        userId: user?.Id!,
+      };
+
+      handlePayment(paymentSessionRequest);
+      handlePaymentSuccess(room.pricePerHour, currency, description);
+
       reservationService
         .makeReservation(reservation)
         .then(() => {
@@ -234,14 +290,14 @@ const RoomDetailsPage: React.FC = () => {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{room.office_room_name}</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{room.officeRoomName}</h1>
             <p className="text-muted-foreground flex items-center mt-1">
               <MapPin className="w-4 h-4 mr-1" />
               {room.building}, Floor {room.floor}
             </p>
           </div>
           <Badge variant="secondary" className="text-lg px-4 py-1">
-            ${room.price_per_hour}/hour
+            ${room.pricePerHour}/hour
           </Badge>
         </div>
         <Separator />
@@ -255,8 +311,8 @@ const RoomDetailsPage: React.FC = () => {
           <CardContent className="space-y-6">
             <div className="rounded-lg overflow-hidden">
               <img
-                src={room.picture_url!}
-                alt={room.office_room_name}
+                src={room.pictureUrl!}
+                alt={room.officeRoomName}
                 className="w-full h-64 object-cover"
               />
             </div>
@@ -280,7 +336,7 @@ const RoomDetailsPage: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <DollarSign className="w-5 h-5 text-muted-foreground" />
-                    <span>Price: ${room.price_per_hour}/hour</span>
+                    <span>Price: ${room.pricePerHour}/hour</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge
@@ -460,7 +516,7 @@ const RoomDetailsPage: React.FC = () => {
         selectedDate={selectedDate}
         selectedTime={selectedTime}
         duration={duration}
-        roomName={room.office_room_name}
+        roomName={room.officeRoomName}
         onSubmit={handleEventFormSubmit}
       />
     </div>
