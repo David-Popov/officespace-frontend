@@ -4,15 +4,21 @@ export type Endpoints = {
         readonly LOGOUT: string;
         readonly REFRESH: string;
         readonly REGISTER: string;
+        readonly GET_LOGGED_USER: string
     };
     readonly USERS: {
         readonly GET_USER_DATA: string;
         GET_USER_BY_EMAIL: string;
     };
     readonly ADMIN: {
-        readonly GETUSERS: string
+        readonly GETUSERS: string;
         readonly DELETEUSER: string;
+        readonly DELETECOMPANY: string;
         readonly UPDATE_USER: string;
+        readonly GETCOMPANIES: string;
+        readonly GETRESERVATIONS: string
+        readonly GET_COMPANY_BY_ID: string;
+        readonly UPDATE_COMPANY: string
     };
     readonly OFFICES: {
         readonly GET_OFFICES: string;
@@ -45,8 +51,12 @@ export type Endpoints = {
         readonly GET_ALL_BY_USER: string;
         readonly DELETE: string;
     };
-    readonly RESERVATIONS: {
-        readonly MAKE_RESERVATION: string;
+    readonly NOTIFICATIONS: {
+        readonly MARK_AS_READ: string
+    };
+    readonly PAYMENTS: {
+        readonly CREATE_PAYMENT_SESSION: string;
+        readonly CONFIRM_PAYMENT: string;
     }
 };
 

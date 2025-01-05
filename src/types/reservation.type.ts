@@ -1,4 +1,6 @@
-import { BaseResponse } from "./base-api.type";
+import { BaseRequest, BaseResponse } from "./base-api.type";
+import { OfficeRoom } from "./offices.types";
+import { User } from "./users.types";
 
 export enum ReservationStatus {
   PENDING = 'PENDING',
@@ -16,7 +18,32 @@ export interface Event {
   reservationId?: string;
 }
 
-export interface Reservation {
+export interface GetReservationsResponseObject {
+    id: string;
+    userEmail: string;
+    reservationTitle: string;
+    startDateTime: string;
+    endDateTime: string;
+    durationAsHours: number;
+    status: ReservationStatus;
+    officeRoomName: string;
+    event?: Event;
+}
+
+export interface ReservationDto {
+  Id: string,
+  event: Event | null;
+  reservationTitle: string;
+  userUuid: string;
+  startDateTime: string;
+  endDateTime: string;
+  durationAsHours: number;
+  status: ReservationStatus;
+  officeRoomUuid: string;
+}
+
+export interface ReservationDto {
+  Id: string,
   event: Event | null;
   reservation_title: string;
   user_uuid: string;
@@ -61,4 +88,8 @@ export interface EventBookingDialogProps {
   onSubmit: (eventData: Event) => void;
 }
 
-export type CreateReservationType = BaseRequest<CreateReservation>;
+export type CreateReservationType = BaseRequest<CreateReservationRequest>;
+
+export type GetReservationsResponseObjectResponse = BaseResponse<GetReservationsResponseObject[]>
+
+export type GetReservationDtosResponse = BaseResponse<ReservationDto[]>

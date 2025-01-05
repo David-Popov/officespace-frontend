@@ -1,55 +1,63 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/UserContext";
-import { jwtDecode } from "jwt-decode";
-import { JwtPayload } from "@/types/jwt.types";
-import {
-  Calendar as CalendarIcon,
-  Clock,
-  Users,
-  Building,
-  DollarSign,
-  MapPin,
-  ChevronRight,
-  AlertCircle,
-} from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 import { EventBookingDialog } from "../../components/events/EventBookingDialog";
 import { IssueReportDialog } from "../../components/ticket/IssueReportDialog";
 import { useParams } from "react-router-dom";
-import { emptyOfficeObject, OfficeRoom, RoomStatus } from "@/types/offices.types";
+import { emptyOfficeObject, OfficeRoom } from "@/types/offices.types";
 import { OfficeService } from "@/services/officeService";
 import {
   ReservationStatus,
-  Reservation,
+  ReservationDto,
   emptyReservation,
   Event,
   CreateReservationRequest,
 } from "@/types/reservation.type";
 import { ReservationService } from "@/services/reservationService";
-import { error } from "console";
+import { PaymentService } from "@/services/paymentService";
+import { ConfirmPaymentRequest, PaymentSessionRequest } from "@/types/payment.types";
+import { ReservationForm } from "@/components/rooms/office-rooms-details/ReservationForm";
+import { ReservationList } from "@/components/rooms/office-rooms-details/ReservationList";
+import { CompanyInfo } from "@/components/rooms/office-rooms-details/CompanyInfo";
+import { RoomDetails } from "@/components/rooms/office-rooms-details/RoomDetails";
+import { RoomHeader } from "@/components/rooms/office-rooms-details/RoomHeader";
+
+const preparePaymentSessionRequest = (
+  reservation: CreateReservationRequest,
+  roomName: string,
+  pricePerHour: number,
+  userId: string
+): PaymentSessionRequest => {
+  const description = `Event Title: ${reservation.event?.meetingTitle} - Room: ${roomName} - Duration: ${reservation.durationAsHours} Hours`;
+
+  return {
+    amount: pricePerHour,
+    currency: "usd",
+    description,
+    quantity: reservation.durationAsHours,
+    userId,
+  };
+};
+
+const prepareConfirmRequest = (
+  sessionId: string,
+  userId: string,
+  paymentRequest: PaymentSessionRequest
+): ConfirmPaymentRequest => {
+  return {
+    sessionId: sessionId,
+    amount: paymentRequest.amount,
+    currency: paymentRequest.currency,
+    description: paymentRequest.description,
+    userId: userId,
+  };
+};
+
+const savePaymentData = (sessionId: string, confirmRequest: ConfirmPaymentRequest) => {
+  localStorage.setItem("stripeSessionId", sessionId);
+  localStorage.setItem("confirmPaymentRequest", JSON.stringify(confirmRequest));
+};
 
 const RoomDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -63,6 +71,7 @@ const RoomDetailsPage: React.FC = () => {
   const service = OfficeService.getInstance();
   const { user, isAuthenticated } = useAuth();
   const reservationService = ReservationService.getInstance();
+  const paymentService = PaymentService.getInstance();
 
   const loadOfficeData = () => {
     if (id === undefined) {
@@ -78,11 +87,15 @@ const RoomDetailsPage: React.FC = () => {
         console.error(error);
       });
   };
+
   useEffect(() => {
     loadOfficeData();
   }, []);
 
-  const getAvailableTimeSlots = (date: Date | undefined, reservations: Reservation[]): string[] => {
+  const getAvailableTimeSlots = (
+    date: Date | undefined,
+    reservations: ReservationDto[]
+  ): string[] => {
     const allSlots = [
       "09:00",
       "10:00",
@@ -190,9 +203,41 @@ const RoomDetailsPage: React.FC = () => {
     }
   };
 
+  const handlePayment = async (reservation: CreateReservationRequest) => {
+    try {
+      if (!user?.Id) {
+        throw new Error("User not authenticated");
+      }
+
+      const paymentSessionRequest = preparePaymentSessionRequest(
+        reservation,
+        room.officeRoomName,
+        room.pricePerHour,
+        user.Id
+      );
+
+      const session = await paymentService.createSession(paymentSessionRequest);
+      console.log("Session created:", session);
+
+      const confirmRequest = prepareConfirmRequest(
+        session.sessionId,
+        user.Id,
+        paymentSessionRequest
+      );
+
+      savePaymentData(session.sessionId, confirmRequest);
+
+      await reservationService.makeReservation(reservation);
+
+      window.location.replace(session.stripePaymentUrl);
+    } catch (error) {
+      console.error("Payment initialization failed:", error);
+    }
+  };
+
   const handleEventFormSubmit = (eventData: Event) => {
-    setReservation((prev) => ({
-      ...prev,
+    const updatedReservation: CreateReservationRequest = {
+      ...reservation,
       event: {
         meetingTitle: eventData.meetingTitle,
         description: eventData.description,
@@ -203,50 +248,31 @@ const RoomDetailsPage: React.FC = () => {
         reservationId: eventData.reservationId,
       },
       reservation_title: eventData.meetingTitle,
-      participant_uuids: /*eventData.attendees ||*/ [],
-      user_uuid: user ? user.Id : "",
-    }));
+      participant_uuids: [],
+      user_uuid: user?.Id || "",
+    };
 
-    console.log("Final reservation object:", reservation);
+    setReservation(updatedReservation);
   };
 
   useEffect(() => {
-    console.log(reservation);
     if (
       reservation.event &&
       reservation.start_date_time &&
       reservation.end_date_time &&
       reservation.user_uuid
     ) {
-      reservationService
-        .makeReservation(reservation)
-        .then(() => {
-          loadOfficeData();
-        })
-        .catch((error) => {
-          console.log("Error: " + JSON.stringify(error));
-        });
+      handlePayment(reservation);
     }
   }, [reservation]);
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-6xl space-y-8">
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">{room.office_room_name}</h1>
-            <p className="text-muted-foreground flex items-center mt-1">
-              <MapPin className="w-4 h-4 mr-1" />
-              {room.building}, Floor {room.floor}
-            </p>
-          </div>
-          <Badge variant="secondary" className="text-lg px-4 py-1">
-            ${room.price_per_hour}/hour
-          </Badge>
-        </div>
-        <Separator />
-      </div>
-
+      <RoomHeader
+        room={room}
+        isAuthenticated={isAuthenticated}
+        onReportIssue={() => setIsIssueReportDialogOpen(true)}
+      />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="md:col-span-2">
           <CardHeader>
@@ -255,213 +281,68 @@ const RoomDetailsPage: React.FC = () => {
           <CardContent className="space-y-6">
             <div className="rounded-lg overflow-hidden">
               <img
-                src={room.picture_url!}
-                alt={room.office_room_name}
+                src={room.pictureUrl!}
+                alt={room.officeRoomName}
                 className="w-full h-64 object-cover"
               />
             </div>
-
             <Tabs defaultValue="details" className="w-full">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="details">Details</TabsTrigger>
                 <TabsTrigger value="company">Company Info</TabsTrigger>
                 <TabsTrigger value="reservations">Current Reservations</TabsTrigger>
               </TabsList>
-
-              <TabsContent value="details" className="space-y-4">
-                <div className="grid grid-cols-2 gap-4 mt-4">
-                  <div className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-muted-foreground" />
-                    <span>Capacity: {room.capacity} people</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Building className="w-5 h-5 text-muted-foreground" />
-                    <span>Type: {room.type.replace("_", " ")}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="w-5 h-5 text-muted-foreground" />
-                    <span>Price: ${room.price_per_hour}/hour</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      variant="default"
-                      className={cn(
-                        room.status === RoomStatus.AVAILABLE &&
-                          "bg-green-100 text-green-800 hover:bg-green-100",
-                        room.status === RoomStatus.OCCUPIED &&
-                          "bg-red-100 text-red-800 hover:bg-red-100",
-                        room.status === RoomStatus.PENDING &&
-                          "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
-                      )}
-                    >
-                      {room.status}
-                    </Badge>
-                  </div>
-                </div>
+              <TabsContent value="details">
+                <RoomDetails room={room} />
               </TabsContent>
-
-              <TabsContent value="company" className="space-y-4">
-                <div className="mt-4">
-                  <h3 className="font-semibold mb-2">{room.company.name}</h3>
-                  <p className="text-muted-foreground">{room.company.address}</p>
-                  <p className="text-muted-foreground">Type: {room.company.type}</p>
-                </div>
+              <TabsContent value="company">
+                <CompanyInfo company={room.company} />
               </TabsContent>
-
-              <TabsContent value="reservations" className="space-y-4">
-                <div className="mt-4 space-y-4">
-                  {room.reservations.map((reservation, index) => (
-                    <div key={index} className="border p-4 rounded-lg">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h4 className="font-semibold">{reservation.reservation_title}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(reservation.start_date_time).toLocaleString()} -{" "}
-                            {new Date(reservation.end_date_time).toLocaleString()}
-                          </p>
-                        </div>
-                        <Badge
-                          variant="default"
-                          className={cn(
-                            reservation.status === ReservationStatus.CONFIRMED &&
-                              "bg-green-100 text-green-800 hover:bg-green-100",
-                            reservation.status === ReservationStatus.PENDING &&
-                              "bg-yellow-100 text-yellow-800 hover:bg-yellow-100",
-                            reservation.status === ReservationStatus.CANCELLED &&
-                              "bg-red-100 text-red-800 hover:bg-red-100"
-                          )}
-                        >
-                          {reservation.status}
-                        </Badge>
-                      </div>
-                      {reservation.event && (
-                        <div className="mt-2 text-sm text-muted-foreground">
-                          <p>Event: {reservation.event.meetingTitle}</p>
-                          <p>Department: {reservation.event.department}</p>
-                          <p>Contact: {reservation.event.contactEmail}</p>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+              <TabsContent value="reservations">
+                <ReservationList reservations={room.reservations} />
               </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
-
-        {isAuthenticated ? (
+        {isAuthenticated && (
           <Card>
             <CardHeader>
               <CardTitle>Make a Reservation</CardTitle>
               <CardDescription>Select your preferred date and time</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label>Select Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !selectedDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={handleDateSelect}
-                      initialFocus
-                      disabled={(date) =>
-                        date < new Date() || date.getDay() === 0 || date.getDay() === 6
-                      }
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Select Time Slot</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {selectedDate ? (
-                    getAvailableTimeSlots(selectedDate, room.reservations).map((time) => (
-                      <Button
-                        key={time}
-                        variant={selectedTime === time ? "default" : "outline"}
-                        className={cn(
-                          "w-full",
-                          !selectedDate ||
-                            (duration &&
-                              parseInt(duration) > 1 &&
-                              !isSlotAvailableForDuration(selectedDate, time, parseInt(duration)))
-                            ? "opacity-50 cursor-not-allowed"
-                            : ""
-                        )}
-                        onClick={() => setSelectedTime(time)}
-                        disabled={Boolean(
-                          !selectedDate ||
-                            (duration &&
-                              parseInt(duration) > 1 &&
-                              !isSlotAvailableForDuration(selectedDate, time, parseInt(duration)))
-                        )}
-                      >
-                        <Clock className="w-4 h-4 mr-2" />
-                        {time}
-                      </Button>
-                    ))
-                  ) : (
-                    <p className="col-span-2 text-center text-muted-foreground">
-                      Please select a date first
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Duration</Label>
-                <Select value={duration} onValueChange={handleDurationChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select duration" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1 hour</SelectItem>
-                    <SelectItem value="2">2 hours</SelectItem>
-                    <SelectItem value="3">3 hours</SelectItem>
-                    <SelectItem value="4">4 hours</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <CardContent>
+              <ReservationForm
+                selectedDate={selectedDate}
+                selectedTime={selectedTime}
+                duration={duration}
+                availableTimeSlots={getAvailableTimeSlots(selectedDate, room.reservations)}
+                onDateSelect={handleDateSelect}
+                onTimeSelect={handleTimeSelect}
+                onDurationChange={handleDurationChange}
+                onContinue={() => setIsBookingDialogOpen(true)}
+                isSlotAvailable={(time) =>
+                  isSlotAvailableForDuration(selectedDate!, time, parseInt(duration))
+                }
+                roomStatus={room.status}
+              />
             </CardContent>
-            <CardFooter>
-              <Button
-                className="w-full"
-                size="lg"
-                disabled={!selectedDate || !selectedTime || room.status !== RoomStatus.AVAILABLE}
-                onClick={() => setIsBookingDialogOpen(true)}
-              >
-                Continue to Book
-                <ChevronRight className="w-4 h-4 ml-2" />
-              </Button>
-            </CardFooter>
           </Card>
-        ) : (
-          ""
         )}
       </div>
-
       <EventBookingDialog
         isOpen={isBookingDialogOpen}
         onClose={() => setIsBookingDialogOpen(false)}
         selectedDate={selectedDate}
         selectedTime={selectedTime}
         duration={duration}
-        roomName={room.office_room_name}
+        roomName={room.officeRoomName}
         onSubmit={handleEventFormSubmit}
+      />
+      <IssueReportDialog
+        isOpen={isIssueReportDialogOpen}
+        onClose={() => setIsIssueReportDialogOpen(false)}
+        roomId={id || ""}
+        userId={user?.Id || ""}
       />
     </div>
   );

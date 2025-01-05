@@ -1,5 +1,5 @@
 import { BaseResponse } from "./base-api.type";
-import { Reservation } from "./reservation.type";
+import { ReservationDto } from "./reservation.type";
 import { CompanyDto } from "./company.type";
 import { ResourceDto } from "./resource.type";
 
@@ -18,31 +18,31 @@ export enum RoomStatus {
 
 export interface OfficeRoom {
   id: string;
-  office_room_name: string;
+  officeRoomName: string;
   address: string | null;
   building: string | null;
   floor: string;
   type: string;
   capacity: number;
   status: RoomStatus;
-  picture_url: string | null;
-  price_per_hour: number;
+  pictureUrl: string | null;
+  pricePerHour: number;
   company: CompanyDto;
-  reservations: Reservation[];
+  reservations: ReservationDto[];
   resources: ResourceDto[];
 }
 
 export const emptyOfficeObject: OfficeRoom = {
   id: "1",
-  office_room_name: "",
+  officeRoomName: "",
   address: "",
   building: "",
   floor: "",
   type: "",
   capacity: 0,
   status: RoomStatus.AVAILABLE,
-  picture_url: "",
-  price_per_hour: 0,
+  pictureUrl: "",
+  pricePerHour: 0,
   company: {
     id: "0", 
     name: "",

@@ -14,33 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
-enum ReservationStatus {
-  PENDING = "PENDING",
-  CONFIRMED = "CONFIRMED",
-  CANCELLED = "CANCELLED",
-}
-
-interface EventDto {
-  id: string;
-  meetingTitle: string;
-  description?: string;
-  attendees?: string[];
-  contactEmail: string;
-  department: string;
-  reservationId: string;
-}
-
-interface ReservationDto {
-  reservation_title: string;
-  user_uuid: string;
-  start_date_time: string;
-  end_date_time: string;
-  durationAsHours: number;
-  status: ReservationStatus;
-  office_room_uuid: string;
-  event?: EventDto;
-}
+import { ReservationDto, ReservationStatus } from "@/types/reservation.type";
 
 const UserProfile: React.FC = () => {
   const { user } = useAuth();
@@ -48,26 +22,7 @@ const UserProfile: React.FC = () => {
   const [openModal, setOpenModal] = React.useState(false);
   const [selectedReservation, setSelectedReservation] = React.useState<string | null>(null);
 
-  // Example reservations data - replace with actual API call
-  const [reservations, setReservations] = React.useState<ReservationDto[]>([
-    {
-      reservation_title: "Team Meeting",
-      user_uuid: "user-123",
-      start_date_time: "2024-12-04T10:00:00",
-      end_date_time: "2024-12-04T11:00:00",
-      durationAsHours: 1,
-      status: ReservationStatus.CONFIRMED,
-      office_room_uuid: "room-123",
-      event: {
-        id: "event-123",
-        meetingTitle: "Weekly Team Sync",
-        description: "Regular team sync meeting",
-        contactEmail: "team@example.com",
-        department: "Engineering",
-        reservationId: "res-123",
-      },
-    },
-  ]);
+  const [reservations, setReservations] = React.useState<ReservationDto[]>([]);
 
   const handleRemoveReservation = async (reservationId: string) => {
     setSelectedReservation(reservationId);
@@ -77,8 +32,6 @@ const UserProfile: React.FC = () => {
   const confirmRemove = async () => {
     if (selectedReservation) {
       try {
-        // Add API call to remove reservation here
-        // await removeReservation(selectedReservation);
         setReservations((prevReservations) =>
           prevReservations.filter(
             (reservation) => reservation.office_room_uuid !== selectedReservation
