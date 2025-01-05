@@ -73,6 +73,10 @@ export const API_CONFIG: ApiConfig = {
         },
         NOTIFICATIONS: {
             MARK_AS_READ: '/notification/read/'
+        },
+        PAYMENTS: {
+            CREATE_PAYMENT_SESSION: '/payment/create-session',
+            CONFIRM_PAYMENT: '/payment/confirm',
         }
     },
 } as const;

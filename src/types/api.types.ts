@@ -53,6 +53,10 @@ export type Endpoints = {
     };
     readonly NOTIFICATIONS: {
         readonly MARK_AS_READ: string
+    };
+    readonly PAYMENTS: {
+        readonly CREATE_PAYMENT_SESSION: string;
+        readonly CONFIRM_PAYMENT: string;
     }
 };
 
