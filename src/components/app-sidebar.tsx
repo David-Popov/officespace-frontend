@@ -39,11 +39,6 @@ import React from "react";
 import { UserNotificationDto } from "@/types/users.types";
 
 const publicItems = [
-  // {
-  //   title: "Home",
-  //   url: "/",
-  //   icon: Home,
-  // },
   {
     title: "SignUp",
     url: "/signup",
@@ -75,11 +70,6 @@ const authenticatedItems = [
 ];
 
 const adminItems = [
-  // {
-  //   title: "Users",
-  //   url: "/users",
-  //   icon: Users,
-  // },
   {
     title: "Admin",
     url: "/admin-panel",
@@ -94,8 +84,8 @@ const dropdownItems = [
     icon: CircleUserIcon,
   },
   {
-    title: "Billing",
-    url: "/billing",
+    title: "Payment History",
+    url: "/payments",
     icon: CreditCardIcon,
   },
   {
