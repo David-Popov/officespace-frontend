@@ -7,18 +7,16 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { Separator } from "@/components/ui/separator";
-import { useAuth } from "@/contexts/UserContext";
 
 const SuccessPayment = () => {
   const navigate = useNavigate();
   const paymentService = PaymentService.getInstance();
   const [payment, setPayment] = useState<Payment>();
   const [isProcessing, setIsProcessing] = useState(false);
-  const { user } = useAuth();
 
   useEffect(() => {
     const confirmPayment = async () => {
-      if (isProcessing || payment !== null) return;
+      if (isProcessing || payment) return;
 
       const sessionId = localStorage.getItem("stripeSessionId");
       const data = localStorage.getItem("confirmPaymentRequest");
@@ -47,7 +45,7 @@ const SuccessPayment = () => {
     };
 
     confirmPayment();
-  }, []);
+  }, [isProcessing, payment]);
 
   return (
     <div className="h-screen w-full flex items-center justify-center bg-background p-4">
