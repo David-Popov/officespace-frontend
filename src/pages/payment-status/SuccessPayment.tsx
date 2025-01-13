@@ -20,8 +20,6 @@ const SuccessPayment = () => {
 
       const sessionId = localStorage.getItem("stripeSessionId");
       const data = localStorage.getItem("confirmPaymentRequest");
-      console.log("sessionId: ", sessionId);
-      console.log("Data: ", data);
 
       if (!sessionId || !data) {
         console.log("Required payment data not found in localStorage");
