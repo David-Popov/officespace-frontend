@@ -20,6 +20,7 @@ import UserNotifications from "./pages/user-notifications/UserNotifications.tsx"
 import PaymentHistory from "./pages/payment-history/PaymentHistory.tsx";
 import SuccessPayment from "./pages/payment-status/SuccessPayment.tsx";
 import FailurePayment from "./pages/payment-status/FailurePayment.tsx";
+import CalendarPage from "@/pages/calendar/CalendarPage.tsx";
 
 const RootLayout = () => {
   return (
@@ -51,6 +52,7 @@ const router = createBrowserRouter([
           { path: "/payments", element: <PaymentHistory /> },
           { path: "/payment-success", element: <SuccessPayment /> },
           { path: "/payment-failure", element: <FailurePayment /> },
+          {path: "/calendar", element: <CalendarPage />},
         ],
       },
 
