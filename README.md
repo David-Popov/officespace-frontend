@@ -40,40 +40,37 @@ npm install
 npm run dev
 ```
 ## UI Previews
-Here are some previews of the frontend pages:
-
 ### Homepage
-<img src="https://github.com/David-Popov/officespace-frontend/tree/development/screenshots/preview-homepage-light.png" alt="Homepage Preview">
-<img src="https://github.com/David-Popov/officespace-frontend/tree/development/screenshots/preview-homepage-dark.png" alt="Homepage Preview">
+<img src="https://github.com/David-Popov/officespace-frontend/blob/development/screenshots/preview-homepage-light.PNG" alt="Homepage Light Preview">
+<img src="https://github.com/David-Popov/officespace-frontend/blob/development/screenshots/preview-homepage-dark.PNG" alt="Homepage Dark Preview">
 
 ### Signup & Login Pages
-<img src="https://github.com/David-Popov/officespace-frontend/tree/development/screenshots/preview-signup.png" alt="Signup Preview">
-<img src="https://github.com/David-Popov/officespace-frontend/tree/development/screenshots/preview-login.png" alt="Login Preview">
+<img src="https://github.com/David-Popov/officespace-frontend/blob/development/screenshots/preview-signup.png" alt="Signup Preview">
+<img src="https://github.com/David-Popov/officespace-frontend/blob/development/screenshots/preview-login.png" alt="Login Preview">
 
 ### Office Rooms Page
-<img src="https://github.com/David-Popov/officespace-frontend/tree/development/screenshots/preview-office-rooms.png" alt="Office Room Management Preview">
+<img src="https://github.com/David-Popov/officespace-frontend/blob/development/screenshots/preview-office-rooms.PNG" alt="Office Room Management Preview">
 
 ### Filter Rooms Side Slide Panel
-<img src="https://github.com/David-Popov/officespace-frontend/tree/development/screenshots/filter-rooms-panel-top.png" alt="Filter Rooms Side Slide Panel Top Preview">
-<img src="https://github.com/David-Popov/officespace-frontend/tree/development/resources/filter-rooms-panel-bottom.png" alt="Filter Rooms Side Slide Panel Bottom Preview">
+<img src="https://github.com/David-Popov/officespace-frontend/blob/development/screenshots/filter-rooms-panel-top.png" alt="Filter Rooms Side Slide Panel Top Preview">
+<img src="https://github.com/David-Popov/officespace-frontend/blob/development/screenshots/filter-rooms-panel-bottom.png" alt="Filter Rooms Side Slide Panel Bottom Preview">
 
 ### Room Details Page
-<img src="https://github.com/David-Popov/officespace-frontend/tree/development/screenshots/preview-office-room-details.png" alt="Office Room Management Preview">
+<img src="https://github.com/David-Popov/officespace-frontend/blob/development/screenshots/preview-office-room-details.png" alt="Office Room Management Preview">
 
 ### Room Reservation Panel and Dialog
-<img src="https://github.com/David-Popov/officespace-frontend/tree/development/screenshots/room-reservation-slide-slide-panel.png" alt="Room Reservation Side Slide Panel Preview">
-<img src="https://github.com/David-Popov/officespace-frontend/tree/development/screenshots/room-reservation-dialogl.png" alt="Room Reservation Dialog Preview">
-<img src="https://github.com/David-Popov/officespace-frontend/tree/development/screenshots/successfull-payment-massage.png" alt="Successfull Payment Massage Preview">
-
+<img src="https://github.com/David-Popov/officespace-frontend/blob/development/screenshots/room-reservation-slide-slide-panel.png" alt="Room Reservation Side Slide Panel Preview">
+<img src="https://github.com/David-Popov/officespace-frontend/blob/development/screenshots/room-reservation-dialogl.png" alt="Room Reservation Dialog Preview">
+<img src="https://github.com/David-Popov/officespace-frontend/blob/development/screenshots/successful-payment-massage.png" alt="Successfull Payment Massage Preview">
 
 ### Report Room Problem Dialog
-<img src="https://github.com/David-Popov/officespace-frontend/tree/development/screenshots/report-problem-dialog.png" alt="Report Room Problem Dialog Preview">
+<img src="https://github.com/David-Popov/officespace-frontend/blob/development/screenshots/report-problem-dialog.png" alt="Report Room Problem Dialog Preview">
 
 ### Calendar Page
-<img src="https://github.com/David-Popov/officespace-frontend/tree/development/screenshots/preview-calendar-page.png" alt="Calendar Page Preview">
+<img src="https://github.com/David-Popov/officespace-frontend/blob/development/screenshots/preview-calendar-page.png" alt="Calendar Page Preview">
 
 ### Profile Pages
-<img src="https://github.com/David-Popov/officespace-frontend/tree/development/screenshots/profile-information-page.png" alt="Profile Information Page Preview">
-<img src="https://github.com/David-Popov/officespace-frontend/tree/development/screenshots/payment-history-page.png" alt="Payment History Page Preview">
+<img src="https://github.com/David-Popov/officespace-frontend/blob/development/screenshots/profile-information-page.png" alt="Profile Information Page Preview">
+<img src="https://github.com/David-Popov/officespace-frontend/blob/development/screenshots/payment-history-page.png" alt="Payment History Page Preview">
 
 ** Notifications Page:** *TODO*
